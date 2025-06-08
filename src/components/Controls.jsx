@@ -5,6 +5,8 @@ export const Controls = ({
   setBgStyle,
   textAlign,
   setTextAlign,
+  layout,
+  setLayout,
   handleImageUpload,
   handleExport
 }) => {
@@ -51,6 +53,25 @@ export const Controls = ({
                 }`}
               >
                 {align}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-600">Layout</label>
+          <div className="flex gap-2">
+            {['default', 'inverted'].map((layoutType) => (
+              <button
+                key={layoutType}
+                onClick={() => setLayout(layoutType)}
+                className={`px-3 py-1 rounded-md text-sm border transition ${
+                  layout === layoutType
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white border-gray-300 text-gray-700 hover:bg-blue-50'
+                }`}
+              >
+                {layoutType.charAt(0).toUpperCase() + layoutType.slice(1)}
               </button>
             ))}
           </div>

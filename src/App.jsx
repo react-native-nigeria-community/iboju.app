@@ -12,7 +12,8 @@ function App() {
       title: 'Your App Title',
       subtitle: 'Your subtitle here',
       textAlign: 'center',
-      bgStyle: 'bg-white'
+      bgStyle: 'bg-white',
+      layout: 'default'
     }
   ]);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -77,7 +78,8 @@ function App() {
           title: 'New Screen',
           subtitle: 'Edit subtitle',
           textAlign: 'center',
-          bgStyle: 'bg-white'
+          bgStyle: 'bg-white',
+          layout: 'default'
         }
       ];
       setTimeout(() => {
@@ -103,7 +105,7 @@ function App() {
 
   return (
     <div className="min-h-screen h-screen bg-gray-100 flex flex-col overflow-hidden">
-      <header className="p-6 border-b border-gray-300 flex justify-between items-center">
+      <header className="p-6 border-b border-gray-300 flex justify-between">
         <h1 className="text-3xl font-bold text-blue-700">PreviewKit</h1>
         <button
           onClick={addNewScreen}
@@ -131,6 +133,8 @@ function App() {
             setBgStyle={(val) => updateActiveScreen({ bgStyle: val })}
             textAlign={activeScreen.textAlign}
             setTextAlign={(val) => updateActiveScreen({ textAlign: val })}
+            layout={activeScreen.layout}
+            setLayout={(val) => updateActiveScreen({ layout: val })}
             handleImageUpload={handleImageUpload}
             handleExport={handleExport}
           />
@@ -154,6 +158,7 @@ function App() {
                   screenshot={screen.screenshot}
                   textAlign={screen.textAlign}
                   bgStyle={screen.bgStyle}
+                  layout={screen.layout}
                 />
                 {idx === activeIndex && (
                   <ExportPreview
@@ -163,6 +168,7 @@ function App() {
                     screenshot={screen.screenshot}
                     textAlign={screen.textAlign}
                     bgStyle={screen.bgStyle}
+                    layout={screen.layout}
                   />
                 )}
               </div>
