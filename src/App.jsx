@@ -17,6 +17,7 @@ function App() {
   ]);
   const [activeIndex, setActiveIndex] = useState(0);
   const exportRef = useRef(null);
+  const previewRefs = useRef([]);
 
   const activeScreen = screens[activeIndex];
 
@@ -67,18 +68,25 @@ function App() {
   }, [activeIndex]);
 
   const addNewScreen = () => {
-    setScreens((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        screenshot: null,
-        title: 'New Screen',
-        subtitle: 'Edit subtitle',
-        textAlign: 'center',
-        bgStyle: 'bg-white'
-      }
-    ]);
-    setActiveIndex(screens.length);
+    setScreens((prev) => {
+      const updatedScreens = [
+        ...prev,
+        {
+          id: Date.now(),
+          screenshot: null,
+          title: 'New Screen',
+          subtitle: 'Edit subtitle',
+          textAlign: 'center',
+          bgStyle: 'bg-white'
+        }
+      ];
+      setTimeout(() => {
+        setActiveIndex(updatedScreens.length - 1);
+        const ref = previewRefs.current[updatedScreens.length - 1];
+        if (ref) ref.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 0);
+      return updatedScreens;
+    });
   };
 
   useEffect(() => {
@@ -87,6 +95,11 @@ function App() {
       document.body.style.overflow = 'auto';
     };
   }, []);
+
+  useEffect(() => {
+    const ref = previewRefs.current[activeIndex];
+    if (ref) ref.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [activeIndex]);
 
   return (
     <div className="min-h-screen h-screen bg-gray-100 flex flex-col overflow-hidden">
@@ -102,12 +115,12 @@ function App() {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar for Controls */}
         <aside className="w-80 bg-gradient-to-b from-white to-gray-50 p-6 border-r border-gray-200 overflow-y-auto shadow-md">
-          <div className="space-y-4 mb-6">
+          <div className="space-y-2 mb-6 max-h-64 overflow-y-auto">
             {screens.map((screen, idx) => (
               <button
                 key={screen.id}
                 onClick={() => setActiveIndex(idx)}
-                className={`block w-full text-left px-3 py-2 rounded text-sm font-medium ${idx === activeIndex ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}
+                className={`block w-full text-left px-3 py-2 rounded text-sm font-medium truncate ${idx === activeIndex ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}
               >
                 {screen.title || `Screen ${idx + 1}`}
               </button>
@@ -127,7 +140,12 @@ function App() {
         <main className="flex-1 overflow-y-auto"> 
           <div className="flex flex-col space-y-10 py-10">
             {screens.map((screen, idx) => (
-              <div key={screen.id}>
+              <div
+                key={screen.id}
+                ref={(el) => (previewRefs.current[idx] = el)}
+                className={`transition-transform duration-300 ${idx === activeIndex ? 'scale-100' : 'scale-95 opacity-50'}`}
+                onClick={() => setActiveIndex(idx)}
+              >
                 <Preview
                   title={screen.title}
                   setTitle={(val) => idx === activeIndex && updateActiveScreen({ title: val })}
