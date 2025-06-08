@@ -5,17 +5,36 @@ import { Preview } from './components/Preview';
 import { ExportPreview } from './components/ExportPreview';
 
 function App() {
-  const [screenshot, setScreenshot] = useState(null);
-  const [title, setTitle] = useState('Your App Title');
-  const [subtitle, setSubtitle] = useState('Your subtitle here');
-  const [textAlign, setTextAlign] = useState('center');
-  const [bgStyle, setBgStyle] = useState('bg-white');
+  const [screens, setScreens] = useState([
+    {
+      id: Date.now(),
+      screenshot: null,
+      title: 'Your App Title',
+      subtitle: 'Your subtitle here',
+      textAlign: 'center',
+      bgStyle: 'bg-white'
+    }
+  ]);
+  const [activeIndex, setActiveIndex] = useState(0);
   const exportRef = useRef(null);
+
+  const activeScreen = screens[activeIndex];
+
+  const updateActiveScreen = (updates) => {
+    setScreens((prev) => {
+      const updated = [...prev];
+      updated[activeIndex] = { ...updated[activeIndex], ...updates };
+      return updated;
+    });
+  };
 
   const handleImageUpload = useCallback((e) => {
     const file = e.target.files?.[0];
-    if (file) setScreenshot(URL.createObjectURL(file));
-  }, []);
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      updateActiveScreen({ screenshot: imageUrl });
+    }
+  }, [activeIndex]);
 
   const handleExport = useCallback(async () => {
     if (!exportRef.current) return;
@@ -45,7 +64,22 @@ function App() {
     } finally {
       document.body.removeChild(container);
     }
-  }, []);
+  }, [activeIndex]);
+
+  const addNewScreen = () => {
+    setScreens((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        screenshot: null,
+        title: 'New Screen',
+        subtitle: 'Edit subtitle',
+        textAlign: 'center',
+        bgStyle: 'bg-white'
+      }
+    ]);
+    setActiveIndex(screens.length);
+  };
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -56,41 +90,66 @@ function App() {
 
   return (
     <div className="min-h-screen h-screen bg-gray-100 flex flex-col overflow-hidden">
-      <header className="p-6 border-b border-gray-300">
+      <header className="p-6 border-b border-gray-300 flex justify-between items-center">
         <h1 className="text-3xl font-bold text-blue-700">PreviewKit</h1>
+        <button
+          onClick={addNewScreen}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
+        >
+          + Add Screen
+        </button>
       </header>
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar for Controls */}
         <aside className="w-80 bg-gradient-to-b from-white to-gray-50 p-6 border-r border-gray-200 overflow-y-auto shadow-md">
+          <div className="space-y-4 mb-6">
+            {screens.map((screen, idx) => (
+              <button
+                key={screen.id}
+                onClick={() => setActiveIndex(idx)}
+                className={`block w-full text-left px-3 py-2 rounded text-sm font-medium ${idx === activeIndex ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'}`}
+              >
+                {screen.title || `Screen ${idx + 1}`}
+              </button>
+            ))}
+          </div>
           <Controls
-            bgStyle={bgStyle}
-            setBgStyle={setBgStyle}
-            textAlign={textAlign}
-            setTextAlign={setTextAlign}
+            bgStyle={activeScreen.bgStyle}
+            setBgStyle={(val) => updateActiveScreen({ bgStyle: val })}
+            textAlign={activeScreen.textAlign}
+            setTextAlign={(val) => updateActiveScreen({ textAlign: val })}
             handleImageUpload={handleImageUpload}
             handleExport={handleExport}
           />
         </aside>
 
         {/* Main Canvas Area */}
-        <main className="flex-1 flex items-center justify-center overflow-hidden">
-          <Preview
-            title={title}
-            setTitle={setTitle}
-            subtitle={subtitle}
-            setSubtitle={setSubtitle}
-            screenshot={screenshot}
-            textAlign={textAlign}
-            bgStyle={bgStyle}
-          />
-          <ExportPreview
-            exportRef={exportRef}
-            title={title}
-            subtitle={subtitle}
-            screenshot={screenshot}
-            textAlign={textAlign}
-            bgStyle={bgStyle}
-          />
+        <main className="flex-1 overflow-y-auto"> 
+          <div className="flex flex-col space-y-10 py-10">
+            {screens.map((screen, idx) => (
+              <div key={screen.id}>
+                <Preview
+                  title={screen.title}
+                  setTitle={(val) => idx === activeIndex && updateActiveScreen({ title: val })}
+                  subtitle={screen.subtitle}
+                  setSubtitle={(val) => idx === activeIndex && updateActiveScreen({ subtitle: val })}
+                  screenshot={screen.screenshot}
+                  textAlign={screen.textAlign}
+                  bgStyle={screen.bgStyle}
+                />
+                {idx === activeIndex && (
+                  <ExportPreview
+                    exportRef={exportRef}
+                    title={screen.title}
+                    subtitle={screen.subtitle}
+                    screenshot={screen.screenshot}
+                    textAlign={screen.textAlign}
+                    bgStyle={screen.bgStyle}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
         </main>
       </div>
     </div>
