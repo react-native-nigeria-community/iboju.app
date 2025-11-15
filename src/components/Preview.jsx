@@ -16,19 +16,19 @@ export const Preview = ({
   const titleRef = useRef(null);
   const subtitleRef = useRef(null);
 
-  // Sync title when switching screens
+  // Sync title when switching screens OR switching layout
   useEffect(() => {
     if (titleRef.current && titleRef.current.textContent !== title) {
       titleRef.current.textContent = title || '';
     }
-  }, [title]);
+  }, [title, layout]); // 👈 layout added
 
-  // Sync subtitle when switching screens
+  // Sync subtitle when switching screens OR switching layout
   useEffect(() => {
     if (subtitleRef.current && subtitleRef.current.textContent !== subtitle) {
       subtitleRef.current.textContent = subtitle || '';
     }
-  }, [subtitle]);
+  }, [subtitle, layout]); // 👈 layout added
 
   return (
     <div className="flex-1">
@@ -50,7 +50,7 @@ export const Preview = ({
               suppressContentEditableWarning
               dir="ltr"
               onInput={(e) => setTitle(e.currentTarget.textContent)}
-              className="text-xl font-bold outline-none"
+              className="text-xl font-bold outline-none text-black"
               style={{ textAlign }}
             />
 
@@ -60,13 +60,13 @@ export const Preview = ({
               suppressContentEditableWarning
               dir="ltr"
               onInput={(e) => setSubtitle(e.currentTarget.textContent)}
-              className="text-gray-600 outline-none"
+              className="text-gray-700 outline-none"
               style={{ textAlign }}
             />
           </div>
         )}
 
-        {/* PHONE MOCKUP — now NORMAL FLOW, not absolute */}
+        {/* PHONE MOCKUP */}
         <div className="flex justify-center items-center flex-1">
           <div className="bg-black rounded-[32px] p-2 border-4 border-black shadow-md">
             <div className="w-[220px] h-[440px] bg-white rounded-[24px] overflow-hidden relative flex items-center justify-center">
@@ -96,7 +96,7 @@ export const Preview = ({
               suppressContentEditableWarning
               dir="ltr"
               onInput={(e) => setTitle(e.currentTarget.textContent)}
-              className="text-xl font-bold outline-none"
+              className="text-xl font-bold outline-none text-black"
               style={{ textAlign }}
             />
 
@@ -106,7 +106,7 @@ export const Preview = ({
               suppressContentEditableWarning
               dir="ltr"
               onInput={(e) => setSubtitle(e.currentTarget.textContent)}
-              className="text-gray-600 outline-none"
+              className="text-gray-700 outline-none"
               style={{ textAlign }}
             />
           </div>
