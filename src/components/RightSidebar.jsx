@@ -36,11 +36,11 @@ export default function RightSidebar({
   onExportCurrent,
   onExportAll,
 }) {
-  // Expanded state: full dark panel
+  // EXPANDED SIDEBAR
   if (!sidebarsCollapsed) {
     return (
-      <aside className="w-80 bg-[#0D1423] text-gray-100 border-l border-gray-800 h-full flex flex-col shadow-lg">
-        {/* Header row inside panel */}
+      <aside className="w-80 bg-[#0D1423] text-gray-100 border-l border-gray-800 h-full flex flex-col shadow-lg relative">
+        {/* Header row */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
           <div className="flex items-center gap-2 text-xs font-semibold tracking-wide uppercase text-gray-400">
             <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-900">
@@ -49,40 +49,56 @@ export default function RightSidebar({
             <span>Settings</span>
           </div>
 
-          <button
-            onClick={() => setSidebarsCollapsed(true)}
-            className="p-1.5 rounded bg-gray-900 hover:bg-gray-800 text-gray-200"
-            title="Collapse side panels"
-          >
-            {/* <ArrowLeftIcon /> */}
-          </button>
-        </div>
-
-        {/* Scrollable content (the Controls) */}
-        <div className="flex-1 overflow-y-auto px-4 py-4">
-          {children}
-
-          {/* Export buttons moved here */}
-          <div className="mt-6 space-y-2">
+          <div className="flex items-center gap-2">
+            {/* Export buttons inside header */}
             <button
               onClick={onExportCurrent}
-              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 text-sm font-medium"
+              className="text-xs px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white"
             >
-              Download Current Screen
+              Export
             </button>
             <button
               onClick={onExportAll}
-              className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 text-sm font-medium"
+              className="text-xs px-2 py-1 rounded bg-green-600 hover:bg-green-500 text-white"
             >
-              Download All Screens
+              Export All
+            </button>
+
+            <button
+              onClick={() => setSidebarsCollapsed(true)}
+              className="p-1.5 rounded bg-gray-900 hover:bg-gray-800 text-gray-200"
+              title="Collapse side panels"
+            >
+              <ArrowLeftIcon />
             </button>
           </div>
         </div>
+
+        {/* Scrollable content (Controls) */}
+        <div className="flex-1 overflow-y-auto px-4 py-4">
+          {children}
+        </div>
+
+        {/* Floating dark pill in bottom-right */}
+        <a
+          href="https://reactnativenigeria.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute bottom-4 right-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-black/80 text-gray-100 border border-gray-700 shadow-lg text-xs md:text-sm transition-transform transition-shadow duration-200 hover:-translate-y-0.5 hover:shadow-xl"
+        >
+          <span className="hidden sm:inline text-gray-300">
+            Built with
+          </span>
+          <span className="text-red-500 animate-pulse">❤️</span>
+          <span className="hidden sm:inline text-gray-200 font-medium">
+            React Native Nigeria
+          </span>
+        </a>
       </aside>
     );
   }
 
-  // Collapsed: small pill, always expanded (no animation)
+  // COLLAPSED: pill on the right
   return (
     <>
       <div className="w-3 bg-[#0D1423] h-full border-l border-gray-800" />
@@ -96,7 +112,7 @@ export default function RightSidebar({
             <GearIcon />
           </span>
           <span className="text-sm font-medium">Settings</span>
-          {/* <ArrowLeftIcon /> */}
+          <ArrowLeftIcon />
         </button>
       </div>
     </>

@@ -51,6 +51,25 @@ function App() {
     [activeIndex]
   );
 
+  function GithubIcon() {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-6 h-6"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M9 19c-4 1-4-2-6-2m12 2v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0018 3.77 5.07 5.07 0 0017.91 1S16.73.65 14 2.48a13.38 13.38 0 00-5 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 3.77a5.44 5.44 0 00-1.5 3.7c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 15.13V19"
+        />
+      </svg>
+    );
+  }
+
   /* -------------------- EXPORT CURRENT SCREEN -------------------- */
   const handleExport = useCallback(async () => {
     if (!exportRef.current) return;
@@ -131,9 +150,7 @@ function App() {
     // Generate final ZIP and download
     const zipFile = await zip.generateAsync({ type: "blob" });
     saveAs(zipFile, "screens.zip");
-
   }, [activeIndex, screens.length]);
-
 
   const addNewScreen = () => {
     setScreens((prev) => [
@@ -181,7 +198,15 @@ function App() {
       {/* HEADER */}
       <header className="px-4 py-2 border-b border-gray-300 flex justify-between items-center">
         <h1 className="text-3xl font-bold text-blue-700">PreviewKit</h1>
-        {/* Export button moved to right sidebar now */}
+
+        <a
+          href="https://github.com/just1and0"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-gray-700 hover:text-black"
+        >
+          <GithubIcon />
+        </a>
       </header>
 
       {/* BODY */}
@@ -204,8 +229,9 @@ function App() {
               <div
                 key={screen.id}
                 ref={(el) => (previewRefs.current[idx] = el)}
-                className={`transition-transform duration-300 inline-block align-top ${idx === activeIndex ? "scale-100" : "scale-95 opacity-50"
-                  }`}
+                className={`transition-transform duration-300 inline-block align-top ${
+                  idx === activeIndex ? "scale-100" : "scale-95 opacity-50"
+                }`}
                 onClick={() => setActiveIndex(idx)}
               >
                 <div className="w-[350px] h-[700px] relative mt-20">
@@ -263,12 +289,8 @@ function App() {
             setCustomBg={(color) =>
               updateActiveScreen({ customBg: color, bgStyle: "" })
             }
-            setTextAlign={(align) =>
-              updateActiveScreen({ textAlign: align })
-            }
-            setLayout={(layout) =>
-              updateActiveScreen({ layout })
-            }
+            setTextAlign={(align) => updateActiveScreen({ textAlign: align })}
+            setLayout={(layout) => updateActiveScreen({ layout })}
             handleImageUpload={handleImageUpload}
           />
         </RightSidebar>
