@@ -225,7 +225,7 @@ function App() {
       <div className="w-screen h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-6 text-center">
         <h1 className="text-3xl font-bold mb-4">Unsupported Device</h1>
         <p className="text-lg opacity-80 max-w-md">
-          PreviewKit is only available on iPad and Desktop browsers.
+          Iboju is only available on iPad and Desktop browsers.
           <br />
           Please switch to a larger device to continue.
         </p>
@@ -245,7 +245,7 @@ function App() {
 
         {/* LEFT SIDE: Logo + Version */}
         <h1 className="text-3xl font-bold text-blue-700 flex items-center gap-3">
-          PreviewKit
+          Iboju
 
           {/* VERSION BADGE */}
           <span className="px-2 py-0.5 text-xs rounded bg-blue-100 text-blue-700 font-semibold">
