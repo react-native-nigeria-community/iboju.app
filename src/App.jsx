@@ -263,7 +263,7 @@ function App() {
 
           {/* GITHUB ICON */}
           <a
-            href="https://github.com/just1and0"
+            href="https://github.com/react-native-nigeria-community/iboju.app"
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-700 hover:text-black"
