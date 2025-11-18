@@ -13,54 +13,12 @@ import LeftSidebar from "./components/LeftSidebar/LeftSidebar";
 import RightSidebar from "./components/RightSidebar";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-
-/* -------------------------
-   TYPES
--------------------------- */
-export interface ScreenItem {
-  id: number;
-  screenshot: string | null;
-  title: string;
-  subtitle: string;
-  textAlign: "left" | "center" | "right";
-  bgStyle: string;
-  customBg: string | null;
-  layout: "default" | "inverted";
-}
-
-/* -------------------------
-   DEVICE BLOCKER (MOBILE WALL)
--------------------------- */
-function isAllowedDevice(): boolean {
-  const ua = navigator.userAgent.toLowerCase();
-  const isTouch = navigator.maxTouchPoints > 1;
-
-  const isMobile =
-    /iphone|android|ipod|opera mini|blackberry|windows phone/i.test(ua);
-
-  const isiPad =
-    /ipad/.test(ua) || (isTouch && /macintosh/.test(ua));
-
-  if (isiPad) return true;
-  if (isMobile) return false;
-  if (isTouch && !isiPad) return false;
-
-  return true;
-}
+import { ScreenItem } from "./global";
+import { isAllowedDevice } from "./utils";
+import { NEW_SCREEN_TEMPLATE } from "./constants";
 
 const App: React.FC = () => {
-  const [screens, setScreens] = useState<ScreenItem[]>([
-    {
-      id: Date.now(),
-      screenshot: null,
-      title: "Your App Title",
-      subtitle: "Your subtitle here",
-      textAlign: "center",
-      bgStyle: "bg-white",
-      customBg: null,
-      layout: "default",
-    },
-  ]);
+  const [screens, setScreens] = useState<ScreenItem[]>([NEW_SCREEN_TEMPLATE]);
 
   const [activeIndex, setActiveIndex] = useState<number>(0);
 
@@ -180,9 +138,7 @@ const App: React.FC = () => {
     saveAs(zipFile, "screens.zip");
   }, [activeIndex, screens.length]);
 
-  /* -------------------------
-      ADD SCREEN
-  -------------------------- */
+
   const addNewScreen = useCallback(() => {
     setScreens((prev) => {
       const next: ScreenItem[] = [
@@ -205,9 +161,7 @@ const App: React.FC = () => {
       return next;
     });
   }, []);
-  /* -------------------------
-      DELETE SCREEN
-  -------------------------- */
+
   const deleteScreen = (id: number) => {
     setScreens((prev) => {
       if (prev.length === 1) return prev;

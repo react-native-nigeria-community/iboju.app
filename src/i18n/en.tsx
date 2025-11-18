@@ -59,4 +59,17 @@ export const en = {
         love: "❤️",
         community: "React Native Nigeria",
     },
+
+    app: {
+        title: "Iboju",
+        version: "v0.1",
+        unsupportedDeviceTitle: "Unsupported Device",
+        unsupportedDeviceDescription: "Iboju is only available on iPad and Desktop browsers.",
+        switchMessage: "Please switch to a larger device to continue.",
+        downloadLabel: "downloads",
+        defaultScreenTitle: "Your App Title",
+        defaultScreenSubtitle: "Your subtitle here",
+        newScreenTitle: "New Screen",
+        newScreenSubtitle: "Edit subtitle"
+    }
 };

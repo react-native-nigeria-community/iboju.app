@@ -80,3 +80,14 @@ export interface RightSidebarProps {
   onExportCurrent: () => void;
   onExportAll: () => void;
 }
+
+export interface ScreenItem {
+  id: number;
+  screenshot: string | null;
+  title: string;
+  subtitle: string;
+  textAlign: "left" | "center" | "right";
+  bgStyle: string;
+  customBg: string | null;
+  layout: "default" | "inverted";
+}
