@@ -1,39 +1,55 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  ChangeEvent,
+} from "react";
 import { toPng } from "html-to-image";
 import { Controls } from "./components/Controls";
 import { Preview } from "./components/Preview";
 import { ExportPreview } from "./components/ExportPreview";
-import LeftSidebar from "./components/LeftSidebar";
+import LeftSidebar from "./components/LeftSidebar/LeftSidebar";
 import RightSidebar from "./components/RightSidebar";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 
 /* -------------------------
+   TYPES
+-------------------------- */
+export interface ScreenItem {
+  id: number;
+  screenshot: string | null;
+  title: string;
+  subtitle: string;
+  textAlign: "left" | "center" | "right";
+  bgStyle: string;
+  customBg: string | null;
+  layout: "default" | "inverted";
+}
+
+/* -------------------------
    DEVICE BLOCKER (MOBILE WALL)
 -------------------------- */
-function isAllowedDevice() {
+function isAllowedDevice(): boolean {
   const ua = navigator.userAgent.toLowerCase();
-
   const isTouch = navigator.maxTouchPoints > 1;
 
   const isMobile =
     /iphone|android|ipod|opera mini|blackberry|windows phone/i.test(ua);
 
-  // Detect iPad correctly in modern iOS
   const isiPad =
-    /ipad/.test(ua) ||
-    (isTouch && /macintosh/.test(ua)); // iPads pretend to be Macs on Safari
+    /ipad/.test(ua) || (isTouch && /macintosh/.test(ua));
 
-  if (isiPad) return true;     // allow iPad
-  if (isMobile) return false;  // block phones
-  if (isTouch && !isiPad) return false; // block big phones/tablets if needed
+  if (isiPad) return true;
+  if (isMobile) return false;
+  if (isTouch && !isiPad) return false;
 
-  return true; // allow desktop/laptop
+  return true;
 }
 
-
-function App() {
-  const [screens, setScreens] = useState([
+const App: React.FC = () => {
+  const [screens, setScreens] = useState<ScreenItem[]>([
     {
       id: Date.now(),
       screenshot: null,
@@ -46,46 +62,44 @@ function App() {
     },
   ]);
 
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState<number>(0);
 
-  // shared collapse state
-  const [sidebarsCollapsed, setSidebarsCollapsed] = useState(false);
+  const [sidebarsCollapsed, setSidebarsCollapsed] = useState<boolean>(false);
 
-  const exportRef = useRef(null);
-  const previewRefs = useRef([]);
+  const exportRef = useRef<HTMLDivElement | null>(null);
+  const previewRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const activeScreen = screens[activeIndex];
 
+  const [downloadCount, setDownloadCount] = useState<number>(1);
 
   /* -------------------------
-      DOWNLOAD COUNTER
+      UPDATE CURRENT SCREEN
   -------------------------- */
-  const [downloadCount, setDownloadCount] = useState(1); // example starting point
-
-
-  const updateActiveScreen = (updates) => {
-    setScreens((prev) => {
-      const updated = [...prev];
-      updated[activeIndex] = { ...updated[activeIndex], ...updates };
-      return updated;
-    });
-  };
-
+  const updateActiveScreen = useCallback(
+    (updates: Partial<ScreenItem>) => {
+      setScreens((prev) => {
+        const updated = [...prev];
+        updated[activeIndex] = { ...updated[activeIndex], ...updates };
+        return updated;
+      });
+    },
+    [activeIndex]
+  );
 
   /* -------------------------
        IMAGE UPLOAD
   -------------------------- */
   const handleImageUpload = useCallback(
-    (e) => {
+    (e: ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) {
         const imageUrl = URL.createObjectURL(file);
         updateActiveScreen({ screenshot: imageUrl });
       }
     },
-    [activeIndex]
+    [updateActiveScreen]
   );
-
 
   /* ---------------------------------
       EXPORT SINGLE SCREEN
@@ -93,16 +107,15 @@ function App() {
   const handleExport = useCallback(async () => {
     if (!exportRef.current) return;
 
-    setDownloadCount((prev) => prev + 1); // ⬅ update download counter
+    setDownloadCount((prev) => prev + 1);
 
-    const exportNode = exportRef.current.cloneNode(true);
+    const exportNode = exportRef.current.cloneNode(true) as HTMLElement;
     exportNode.style.width = "1290px";
     exportNode.style.height = "2796px";
 
     const container = document.createElement("div");
     container.style.position = "absolute";
     container.style.left = "-9999px";
-    container.style.top = "0";
     container.appendChild(exportNode);
     document.body.appendChild(container);
 
@@ -121,16 +134,15 @@ function App() {
     } finally {
       document.body.removeChild(container);
     }
-  }, [activeIndex]);
-
+  }, []);
 
   /* ---------------------------------
-      EXPORT *ALL* SCREENS (ZIP)
+      EXPORT ALL SCREENS (ZIP)
   ---------------------------------- */
   const handleExportAll = useCallback(async () => {
     if (screens.length === 0) return;
 
-    setDownloadCount((prev) => prev + 1); // count this too
+    setDownloadCount((prev) => prev + 1);
 
     const originalIndex = activeIndex;
     const zip = new JSZip();
@@ -141,14 +153,13 @@ function App() {
 
       if (!exportRef.current) continue;
 
-      const exportNode = exportRef.current.cloneNode(true);
+      const exportNode = exportRef.current.cloneNode(true) as HTMLElement;
       exportNode.style.width = "1290px";
       exportNode.style.height = "2796px";
 
       const container = document.createElement("div");
       container.style.position = "absolute";
       container.style.left = "-9999px";
-      container.style.top = "0";
       container.appendChild(exportNode);
       document.body.appendChild(container);
 
@@ -157,7 +168,7 @@ function App() {
         const base64 = dataUrl.split(",")[1];
         zip.file(`screen-${i + 1}.png`, base64, { base64: true });
       } catch (err) {
-        console.error("Failed exporting screen:", err);
+        console.error("Exporting screen failed:", err);
       } finally {
         document.body.removeChild(container);
       }
@@ -169,8 +180,10 @@ function App() {
     saveAs(zipFile, "screens.zip");
   }, [activeIndex, screens.length]);
 
-
-  const addNewScreen = () =>
+  /* -------------------------
+      ADD SCREEN
+  -------------------------- */
+  const addNewScreen = () => {
     setScreens((prev) => [
       ...prev,
       {
@@ -184,12 +197,12 @@ function App() {
         layout: "default",
       },
     ]);
-
+  };
 
   /* -------------------------
-        DELETE SCREEN
+      DELETE SCREEN
   -------------------------- */
-  const deleteScreen = (id) => {
+  const deleteScreen = (id: number) => {
     setScreens((prev) => {
       if (prev.length === 1) return prev;
 
@@ -207,7 +220,6 @@ function App() {
     });
   };
 
-
   /* -------------------------
       SCROLL ACTIVE PREVIEW
   -------------------------- */
@@ -216,9 +228,8 @@ function App() {
     if (ref) ref.scrollIntoView({ behavior: "smooth", inline: "center" });
   }, [activeIndex]);
 
-
   /* ===========================================================
-     🚨 MOBILE DEVICE BLOCKER — FULLSCREEN WALL
+     🚨 DEVICE BLOCKER
   ============================================================ */
   if (!isAllowedDevice()) {
     return (
@@ -233,35 +244,25 @@ function App() {
     );
   }
 
-
   /* ===========================================================
-     NORMAL APP LAYOUT (ALLOWED DEVICES ONLY)
+     NORMAL UI
   ============================================================ */
   return (
     <div className="min-h-screen h-screen bg-gray-100 flex flex-col overflow-hidden">
-
       {/* HEADER */}
       <header className="px-4 py-2 border-b border-gray-300 flex justify-between items-center">
-
-        {/* LEFT SIDE: Logo + Version */}
         <h1 className="text-3xl font-bold text-blue-700 flex items-center gap-3">
           Iboju
-
-          {/* VERSION BADGE */}
           <span className="px-2 py-0.5 text-xs rounded bg-blue-100 text-blue-700 font-semibold">
             v0.1
           </span>
         </h1>
 
-        {/* RIGHT SIDE: GitHub + Download Count */}
         <div className="flex items-center gap-4">
-
-          {/* DOWNLOAD COUNT */}
           <span className="text-gray-600 text-sm bg-gray-200 px-3 py-1 rounded-full">
             {downloadCount.toLocaleString()} downloads
           </span>
 
-          {/* GITHUB ICON */}
           <a
             href="https://github.com/react-native-nigeria-community/iboju.app"
             target="_blank"
@@ -269,28 +270,24 @@ function App() {
             className="text-gray-700 hover:text-black"
           >
             <svg
-              xmlns="http://www.w3.org/2000/svg"
               className="w-6 h-6"
-              viewBox="0 0 24 24"
               fill="none"
+              viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth={2}
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M9 19c-4 1-4-2-6-2m12 2v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0018 3.77 5.07 5.07 0 0017.91 1S16.73.65 14 2.48a13.38 13.38 0 00-5 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 3.77a5.44 5.44 0 00-1.5 3.7c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 15.13V19"
+                d="M9 19c-4 1-4-2-6-2m12 2v-3.87a3.37..."
               />
             </svg>
           </a>
         </div>
       </header>
 
-
-
       {/* BODY */}
       <div className="flex flex-1 overflow-hidden">
-
         <LeftSidebar
           screens={screens}
           activeIndex={activeIndex}
@@ -306,20 +303,24 @@ function App() {
             {screens.map((screen, idx) => (
               <div
                 key={screen.id}
-                ref={(el) => (previewRefs.current[idx] = el)}
-                className={`transition-transform duration-300 inline-block align-top ${idx === activeIndex ? "scale-100" : "scale-95 opacity-50"
+                ref={(el) => {
+                  previewRefs.current[idx] = el;
+                }}
+                className={`transition-transform duration-300 inline-block align-top ${idx === activeIndex
+                    ? "scale-100"
+                    : "scale-95 opacity-50"
                   }`}
                 onClick={() => setActiveIndex(idx)}
               >
                 <div className="w-[350px] h-[700px] relative mt-20">
                   <Preview
                     title={screen.title}
-                    setTitle={(val) =>
+                    setTitle={(val:string) =>
                       idx === activeIndex &&
                       updateActiveScreen({ title: val })
                     }
                     subtitle={screen.subtitle}
-                    setSubtitle={(val) =>
+                    setSubtitle={(val: string) =>
                       idx === activeIndex &&
                       updateActiveScreen({ subtitle: val })
                     }
@@ -359,25 +360,24 @@ function App() {
             customBg={activeScreen.customBg}
             textAlign={activeScreen.textAlign}
             layout={activeScreen.layout}
-            setBgStyle={(style) =>
+            setBgStyle={(style: string) =>
               updateActiveScreen({ bgStyle: style, customBg: null })
             }
-            setCustomBg={(color) =>
+            setCustomBg={(color: string | null) =>
               updateActiveScreen({ customBg: color, bgStyle: "" })
             }
-            setTextAlign={(align) =>
+            setTextAlign={(align: "left" | "center" | "right") =>
               updateActiveScreen({ textAlign: align })
             }
-            setLayout={(layout) =>
+            setLayout={(layout: "default" | "inverted") =>
               updateActiveScreen({ layout })
             }
             handleImageUpload={handleImageUpload}
           />
         </RightSidebar>
-
       </div>
     </div>
   );
-}
+};
 
 export default App;

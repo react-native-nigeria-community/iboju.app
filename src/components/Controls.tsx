@@ -1,6 +1,8 @@
-import React from "react";
+import React, { ChangeEvent } from "react";
+import { ControlsProps } from "../global";
+import { en } from "../i18n/en";
 
-export const Controls = ({
+export const Controls: React.FC<ControlsProps> = ({
   bgStyle,
   customBg,
   textAlign,
@@ -11,12 +13,14 @@ export const Controls = ({
   setLayout,
   handleImageUpload,
 }) => {
-  const handleCustomColorChange = (e) => {
-    const value = e.target.value;
-    setCustomBg(value);
+
+  const t = en.controls;
+
+  const handleCustomColorChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setCustomBg(e.target.value);
   };
 
-  const handleCustomColorTextChange = (e) => {
+  const handleCustomColorTextChange = (e: ChangeEvent<HTMLInputElement>) => {
     setCustomBg(e.target.value);
   };
 
@@ -31,18 +35,21 @@ export const Controls = ({
       {/* SECTION: Screenshot */}
       <section>
         <h2 className="text-xs font-semibold tracking-wide text-gray-400 uppercase mb-3">
-          Screenshot
+          {t.screenshot}
         </h2>
 
         <div className="space-y-2">
           <label className="block text-[11px] text-gray-400">
-            Upload screenshot
+            {t.uploadScreenshot}
           </label>
+
           <input
             type="file"
             accept="image/*"
             onChange={handleImageUpload}
-            className="block w-full text-xs text-gray-100 bg-[#111827] border border-gray-700 rounded-md px-2 py-1.5 file:mr-3 file:px-3 file:py-1 file:rounded file:border-0 file:text-xs file:bg-blue-600 file:text-white hover:file:bg-blue-500"
+            className="block w-full text-xs text-gray-100 bg-[#111827] border border-gray-700 rounded-md px-2 py-1.5 
+            file:mr-3 file:px-3 file:py-1 file:rounded file:border-0 
+            file:text-xs file:bg-blue-600 file:text-white hover:file:bg-blue-500"
           />
         </div>
       </section>
@@ -52,40 +59,43 @@ export const Controls = ({
       {/* SECTION: Background */}
       <section>
         <h2 className="text-xs font-semibold tracking-wide text-gray-400 uppercase mb-3">
-          Background
+          {t.background}
         </h2>
 
         {/* Preset styles */}
         <div className="space-y-2 mb-3">
           <label className="block text-[11px] text-gray-400">
-            Preset style
+            {t.presetStyle}
           </label>
           <select
-            className="w-full bg-[#111827] border border-gray-700 rounded-md px-2 py-1.5 text-xs text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full bg-[#111827] border border-gray-700 rounded-md px-2 py-1.5 text-xs text-gray-100 
+            focus:outline-none focus:ring-1 focus:ring-blue-500"
             value={isGradientOrPreset ? bgStyle : "custom"}
             onChange={(e) => {
               const value = e.target.value;
               if (value === "custom") return;
+              setCustomBg(null);
               setBgStyle(value);
             }}
           >
-            <option value="bg-white">White</option>
+            <option value="bg-white">{t.white}</option>
             <option value="bg-gradient-to-r from-purple-400 to-pink-500">
-              Purple → Pink
+              {t.purplePink}
             </option>
             <option value="bg-gradient-to-r from-blue-400 to-green-400">
-              Blue → Green
+              {t.blueGreen}
             </option>
-            <option value="bg-gray-800 text-white">Dark</option>
-            <option value="custom">Custom color</option>
+            <option value="bg-gray-800 text-white">{t.dark}</option>
+            <option value="custom">{t.custom}</option>
           </select>
         </div>
 
         {/* Custom background */}
         <div className="space-y-2">
           <label className="block text-[11px] text-gray-400">
-            Custom color
+            {t.customColor}
           </label>
+
           <div className="flex items-center gap-2">
             <input
               type="color"
@@ -93,12 +103,14 @@ export const Controls = ({
               onChange={handleCustomColorChange}
               className="w-9 h-9 rounded border border-gray-700 bg-[#111827] p-0 cursor-pointer"
             />
+
             <input
               type="text"
               value={customBg || ""}
               onChange={handleCustomColorTextChange}
-              placeholder="#FF9900 or rgb(0,0,0)"
-              className="flex-1 bg-[#111827] border border-gray-700 rounded-md px-2 py-1.5 text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder={t.customPlaceholder}
+              className="flex-1 bg-[#111827] border border-gray-700 rounded-md px-2 py-1.5 
+              text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
           </div>
         </div>
@@ -109,46 +121,48 @@ export const Controls = ({
       {/* SECTION: Layout & Text */}
       <section>
         <h2 className="text-xs font-semibold tracking-wide text-gray-400 uppercase mb-3">
-          Layout & Text
+          {t.layoutText}
         </h2>
 
-        {/* Layout type */}
+        {/* Layout */}
         <div className="mb-4 space-y-2">
-          <label className="block text-[11px] text-gray-400">Layout</label>
+          <label className="block text-[11px] text-gray-400">
+            {t.layout}
+          </label>
+
           <div className="inline-flex rounded-md bg-[#111827] border border-gray-700 p-0.5">
-            {["default", "inverted"].map((type) => (
+            {(["default", "inverted"] as const).map((type) => (
               <button
                 key={type}
                 onClick={() => setLayout(type)}
-                className={`px-3 py-1 text-xs rounded ${
-                  layout === type
+                className={`px-3 py-1 text-xs rounded ${layout === type
                     ? "bg-blue-600 text-white"
                     : "text-gray-200 hover:bg-gray-800"
-                }`}
+                  }`}
               >
-                {type === "default" ? "Default" : "Inverted"}
+                {t[type]}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Text alignment */}
+        {/* Text align */}
         <div className="space-y-2">
           <label className="block text-[11px] text-gray-400">
-            Text alignment
+            {t.textAlignment}
           </label>
+
           <div className="inline-flex rounded-md bg-[#111827] border border-gray-700 p-0.5">
-            {["left", "center", "right"].map((align) => (
+            {(["left", "center", "right"] as const).map((align) => (
               <button
                 key={align}
                 onClick={() => setTextAlign(align)}
-                className={`px-3 py-1 text-xs rounded capitalize ${
-                  textAlign === align
+                className={`px-3 py-1 text-xs rounded capitalize ${textAlign === align
                     ? "bg-blue-600 text-white"
                     : "text-gray-200 hover:bg-gray-800"
-                }`}
+                  }`}
               >
-                {align}
+                {t[align]}
               </button>
             ))}
           </div>
