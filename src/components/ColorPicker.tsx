@@ -1,5 +1,7 @@
 import React, { ChangeEvent, useCallback, useMemo } from "react";
 import { en } from "../i18n/en";
+import { ColorPickerProps } from "../global";
+import { PRESET_GRADIENTS } from "../constants";
 
 export const ColorPicker = React.memo(function ColorPicker({
   bgStyle,
