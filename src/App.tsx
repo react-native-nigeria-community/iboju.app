@@ -183,22 +183,28 @@ const App: React.FC = () => {
   /* -------------------------
       ADD SCREEN
   -------------------------- */
-  const addNewScreen = () => {
-    setScreens((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        screenshot: null,
-        title: "New Screen",
-        subtitle: "Edit subtitle",
-        textAlign: "center",
-        bgStyle: "bg-white",
-        customBg: null,
-        layout: "default",
-      },
-    ]);
-  };
+  const addNewScreen = useCallback(() => {
+    setScreens((prev) => {
+      const next: ScreenItem[] = [
+        ...prev,
+        {
+          id: Date.now(),
+          screenshot: null,
+          title: "New Screen",
+          subtitle: "Edit subtitle",
+          textAlign: "center",
+          bgStyle: "bg-white",
+          customBg: null,
+          layout: "default",
+        },
+      ];
 
+      // Move active index to the new screen
+      setActiveIndex(next.length - 1);
+
+      return next;
+    });
+  }, []);
   /* -------------------------
       DELETE SCREEN
   -------------------------- */
@@ -307,23 +313,26 @@ const App: React.FC = () => {
                   previewRefs.current[idx] = el;
                 }}
                 className={`transition-transform duration-300 inline-block align-top ${idx === activeIndex
-                    ? "scale-100"
-                    : "scale-95 opacity-50"
+                  ? "scale-100"
+                  : "scale-95 opacity-50"
                   }`}
                 onClick={() => setActiveIndex(idx)}
               >
                 <div className="w-[350px] h-[700px] relative mt-20">
                   <Preview
                     title={screen.title}
-                    setTitle={(val:string) =>
-                      idx === activeIndex &&
-                      updateActiveScreen({ title: val })
-                    }
+                    setTitle={(val: string | null) => {
+                      if (idx === activeIndex && val !== null) {
+                        updateActiveScreen({ title: val });
+                      }
+                    }}
                     subtitle={screen.subtitle}
-                    setSubtitle={(val: string) =>
-                      idx === activeIndex &&
-                      updateActiveScreen({ subtitle: val })
-                    }
+                    setSubtitle={(val: string | null) => {
+                      if (idx === activeIndex && val !== null) {
+                        updateActiveScreen({ subtitle: val });
+                      }
+                    }}
+
                     screenshot={screen.screenshot}
                     textAlign={screen.textAlign}
                     bgStyle={screen.bgStyle}

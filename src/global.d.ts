@@ -1,4 +1,4 @@
-import { ChangeEvent, RefObject } from "react";
+import { ChangeEvent, ReactNode, RefObject } from "react";
 
 interface GradientOption {
   name: string;
@@ -73,3 +73,10 @@ export interface LeftSidebarExpandedProps extends Omit<LeftSidebarProps, "screen
   setSearch: (value: string) => void;
 }
 
+export interface RightSidebarProps {
+  children: ReactNode;
+  sidebarsCollapsed: boolean;
+  setSidebarsCollapsed: (value: boolean) => void;
+  onExportCurrent: () => void;
+  onExportAll: () => void;
+}

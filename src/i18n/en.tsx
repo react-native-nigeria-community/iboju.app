@@ -44,4 +44,19 @@ export const en = {
         searchPlaceholder: "Search screens...",
         screen: "Screen",
     },
+
+    preview: {
+        altScreenshot: "Phone screenshot",
+        noScreenshot: "No screenshot",
+    },
+
+    rightSidebar: {
+        settings: "Settings",
+        export: "Export",
+        exportAll: "Export All",
+        collapse: "Collapse",
+        builtWith: "Built with",
+        love: "❤️",
+        community: "React Native Nigeria",
+    },
 };
