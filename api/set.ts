@@ -1,11 +1,10 @@
-// api/set.ts
 import { createClient } from "redis";
 
 export const config = {
-  runtime: "edge",
+  runtime: "nodejs",
 };
 
-export default async function handler() {
+export default async function handler(req: any, res: any) {
   const redis = createClient({
     url: process.env.REDIS_URL!,
   });
@@ -13,14 +12,11 @@ export default async function handler() {
   await redis.connect();
 
   const raw = await redis.get("downloads");
-  const count = raw ? parseInt(raw.toString(), 10) : 0;
-
-  const newCount = count + 1;
+  const prev = raw ? parseInt(raw.toString(), 10) : 0;
+  const newCount = prev + 1;
 
   await redis.set("downloads", newCount.toString());
+  await redis.disconnect();
 
-  return new Response(JSON.stringify({ count: newCount }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+  res.status(200).json({ count: newCount });
 }
