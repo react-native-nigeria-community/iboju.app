@@ -28,21 +28,6 @@ const App: React.FC = () => {
 
   const [downloadCount, setDownloadCount] = useState<number>(1);
 
-  useEffect(() => {
-  const fetchCount = async () => {
-    try {
-      const res = await fetch("/api/download-count");
-      const data = await res.json();
-      setDownloadCount(data.count || 0);
-    } catch (err) {
-      console.error("Failed to fetch download count", err);
-    }
-  };
-
-  fetchCount();
-}, []);
-
-
   const activeScreen = screens[activeIndex];
 
   const updateActiveScreen = useCallback(
@@ -56,6 +41,31 @@ const App: React.FC = () => {
     },
     [activeIndex]
   );
+
+  useEffect(() => {
+  const fetchCount = async () => {
+    try {
+      const res = await fetch("/api/get");
+      const data = await res.json();
+      setDownloadCount(data.count);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchCount();
+}, []);
+
+const incrementDownload = async () => {
+  try {
+    const res = await fetch("/api/set", { method: "POST" });
+    const data = await res.json();
+    setDownloadCount(data.count);
+  } catch {
+    console.log(">>>>>>bug")
+    setDownloadCount((prev) => prev + 1); // fallback
+  }
+};
 
   /* -------------------------
        IMAGE UPLOAD
@@ -77,11 +87,11 @@ const App: React.FC = () => {
 const handleExport = useCallback(async () => {
   if (!exportRef.current) return;
 
-  // Update UI instantly
+  // UI updates instantly
   setDownloadCount((prev) => prev + 1);
 
-  // Tell API to increment Redis
-  fetch("/api/increment-download", { method: "POST" });
+  // 🔥 increment Redis
+  incrementDownload();
 
   const exportNode = exportRef.current.cloneNode(true) as HTMLElement;
   exportNode.style.width = "1290px";
@@ -114,11 +124,11 @@ const handleExport = useCallback(async () => {
 const handleExportAll = useCallback(async () => {
   if (screens.length === 0) return;
 
-  // Update UI instantly
+  // UI updates instantly
   setDownloadCount((prev) => prev + 1);
 
-  // Increment Redis
-  fetch("/api/increment-download", { method: "POST" });
+  // 🔥 increment Redis
+  incrementDownload();
 
   const originalIndex = activeIndex;
   const zip = new JSZip();
@@ -177,8 +187,6 @@ const handleExportAll = useCallback(async () => {
   /* -------------------------
       DELETE SCREEN
   -------------------------- */
-  
-  
   const deleteScreen = (id: number) => {
     setScreens((prev) => {
       if (prev.length === 1) return prev;
@@ -310,11 +318,10 @@ const handleExportAll = useCallback(async () => {
                 ref={(el) => {
                   previewRefs.current[idx] = el;
                 }}
-                className={`transition-transform duration-300 inline-block align-top ${
-                  idx === activeIndex
-                    ? "scale-100"
-                    : "scale-95 opacity-50"
-                }`}
+                className={`transition-transform duration-300 inline-block align-top ${idx === activeIndex
+                  ? "scale-100"
+                  : "scale-95 opacity-50"
+                  }`}
                 onClick={() => setActiveIndex(idx)}
               >
                 <div className="w-[350px] h-[700px] relative mt-20">
