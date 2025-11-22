@@ -21,3 +21,4 @@ Iboju.app (formerly **PreviewKit**) is a simple web tool that helps you generate
 * **Vite**
 * **TailwindCSS**
 * **TypeScript** (optional depending on project setup)
+* **Redis** 
