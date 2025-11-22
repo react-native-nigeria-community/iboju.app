@@ -56,16 +56,22 @@ const App: React.FC = () => {
   fetchCount();
 }, []);
 
-const incrementDownload = async () => {
+const incrementDownload = async (amount = 1) => {
   try {
-    const res = await fetch("/api/set", { method: "POST" });
+    const res = await fetch("/api/set", { 
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount })
+    });
+
     const data = await res.json();
     setDownloadCount(data.count);
   } catch {
-    console.log(">>>>>>bug")
-    setDownloadCount((prev) => prev + 1); // fallback
+    console.log("Failed to increment, applying fallback.");
+    setDownloadCount((prev) => prev + amount);
   }
 };
+
 
   /* -------------------------
        IMAGE UPLOAD
@@ -87,11 +93,10 @@ const incrementDownload = async () => {
 const handleExport = useCallback(async () => {
   if (!exportRef.current) return;
 
-  // UI updates instantly
   setDownloadCount((prev) => prev + 1);
 
-  // 🔥 increment Redis
-  incrementDownload();
+  // Save to Redis
+  incrementDownload(1);
 
   const exportNode = exportRef.current.cloneNode(true) as HTMLElement;
   exportNode.style.width = "1290px";
@@ -124,11 +129,13 @@ const handleExport = useCallback(async () => {
 const handleExportAll = useCallback(async () => {
   if (screens.length === 0) return;
 
-  // UI updates instantly
-  setDownloadCount((prev) => prev + 1);
+  const countToAdd = screens.length;
 
-  // 🔥 increment Redis
-  incrementDownload();
+  // UI update
+  setDownloadCount((prev) => prev + countToAdd);
+
+  // Save to Redis
+  incrementDownload(countToAdd);
 
   const originalIndex = activeIndex;
   const zip = new JSZip();
