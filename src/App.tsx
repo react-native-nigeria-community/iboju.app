@@ -28,6 +28,21 @@ const App: React.FC = () => {
 
   const [downloadCount, setDownloadCount] = useState<number>(1);
 
+  useEffect(() => {
+  const fetchCount = async () => {
+    try {
+      const res = await fetch("/api/download-count");
+      const data = await res.json();
+      setDownloadCount(data.count || 0);
+    } catch (err) {
+      console.error("Failed to fetch download count", err);
+    }
+  };
+
+  fetchCount();
+}, []);
+
+
   const activeScreen = screens[activeIndex];
 
   const updateActiveScreen = useCallback(
@@ -59,10 +74,60 @@ const App: React.FC = () => {
   /* ---------------------------------
       EXPORT SINGLE SCREEN
   ---------------------------------- */
-  const handleExport = useCallback(async () => {
-    if (!exportRef.current) return;
+const handleExport = useCallback(async () => {
+  if (!exportRef.current) return;
 
-    setDownloadCount((prev) => prev + 1);
+  // Update UI instantly
+  setDownloadCount((prev) => prev + 1);
+
+  // Tell API to increment Redis
+  fetch("/api/increment-download", { method: "POST" });
+
+  const exportNode = exportRef.current.cloneNode(true) as HTMLElement;
+  exportNode.style.width = "1290px";
+  exportNode.style.height = "2796px";
+
+  const container = document.createElement("div");
+  container.style.position = "absolute";
+  container.style.left = "-9999px";
+  container.appendChild(exportNode);
+  document.body.appendChild(container);
+
+  try {
+    const dataUrl = await toPng(exportNode, { width: 1290, height: 2796 });
+
+    const link = document.createElement("a");
+    link.download = "preview.png";
+    link.href = dataUrl;
+    link.click();
+  } catch (err) {
+    console.error("Export failed:", err);
+  } finally {
+    document.body.removeChild(container);
+  }
+}, []);
+
+
+  /* ---------------------------------
+      EXPORT ALL SCREENS (ZIP)
+  ---------------------------------- */
+const handleExportAll = useCallback(async () => {
+  if (screens.length === 0) return;
+
+  // Update UI instantly
+  setDownloadCount((prev) => prev + 1);
+
+  // Increment Redis
+  fetch("/api/increment-download", { method: "POST" });
+
+  const originalIndex = activeIndex;
+  const zip = new JSZip();
+
+  for (let i = 0; i < screens.length; i++) {
+    setActiveIndex(i);
+    await new Promise((resolve) => setTimeout(resolve, 160));
+
+    if (!exportRef.current) continue;
 
     const exportNode = exportRef.current.cloneNode(true) as HTMLElement;
     exportNode.style.width = "1290px";
@@ -75,65 +140,22 @@ const App: React.FC = () => {
     document.body.appendChild(container);
 
     try {
-      const dataUrl = await toPng(exportNode, {
-        width: 1290,
-        height: 2796,
-      });
-
-      const link = document.createElement("a");
-      link.download = "preview.png";
-      link.href = dataUrl;
-      link.click();
+      const dataUrl = await toPng(exportNode, { width: 1290, height: 2796 });
+      const base64 = dataUrl.split(",")[1];
+      zip.file(`screen-${i + 1}.png`, base64, { base64: true });
     } catch (err) {
-      console.error("Export failed:", err);
+      console.error("Exporting screen failed:", err);
     } finally {
       document.body.removeChild(container);
     }
-  }, []);
+  }
 
-  /* ---------------------------------
-      EXPORT ALL SCREENS (ZIP)
-  ---------------------------------- */
-  const handleExportAll = useCallback(async () => {
-    if (screens.length === 0) return;
+  setActiveIndex(originalIndex);
 
-    setDownloadCount((prev) => prev + 1);
+  const zipFile = await zip.generateAsync({ type: "blob" });
+  saveAs(zipFile, "screens.zip");
+}, [activeIndex, screens.length]);
 
-    const originalIndex = activeIndex;
-    const zip = new JSZip();
-
-    for (let i = 0; i < screens.length; i++) {
-      setActiveIndex(i);
-      await new Promise((resolve) => setTimeout(resolve, 160));
-
-      if (!exportRef.current) continue;
-
-      const exportNode = exportRef.current.cloneNode(true) as HTMLElement;
-      exportNode.style.width = "1290px";
-      exportNode.style.height = "2796px";
-
-      const container = document.createElement("div");
-      container.style.position = "absolute";
-      container.style.left = "-9999px";
-      container.appendChild(exportNode);
-      document.body.appendChild(container);
-
-      try {
-        const dataUrl = await toPng(exportNode, { width: 1290, height: 2796 });
-        const base64 = dataUrl.split(",")[1];
-        zip.file(`screen-${i + 1}.png`, base64, { base64: true });
-      } catch (err) {
-        console.error("Exporting screen failed:", err);
-      } finally {
-        document.body.removeChild(container);
-      }
-    }
-
-    setActiveIndex(originalIndex);
-
-    const zipFile = await zip.generateAsync({ type: "blob" });
-    saveAs(zipFile, "screens.zip");
-  }, [activeIndex, screens.length]);
 
   /* -------------------------
       ADD SCREEN
@@ -155,6 +177,8 @@ const App: React.FC = () => {
   /* -------------------------
       DELETE SCREEN
   -------------------------- */
+  
+  
   const deleteScreen = (id: number) => {
     setScreens((prev) => {
       if (prev.length === 1) return prev;
