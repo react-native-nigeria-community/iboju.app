@@ -1,21 +1,22 @@
+// api/get.ts
 import { createClient } from "redis";
 
-const redis = createClient({
- url: process.env.REDIS_URL,
-});
+export const config = {
+  runtime: "edge",
+};
 
-export default async function handler(req, res) {
-  try {
-    await redis.connect();
+export default async function handler() {
+  const redis = createClient({
+    url: process.env.REDIS_URL!,
+  });
 
-    const value = await redis.get("downloads");
-    const count = value ? parseInt(value) : 0;
+  await redis.connect();
 
-    await redis.disconnect();
+  const raw = await redis.get("downloads"); // string | Buffer | null
+  const count = raw ? parseInt(raw.toString(), 10) : 0;
 
-    res.status(200).json({ count });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ count: 0 });
-  }
+  return new Response(JSON.stringify({ count }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }

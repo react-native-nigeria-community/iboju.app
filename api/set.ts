@@ -1,25 +1,26 @@
-// api/increment-download.ts
+// api/set.ts
 import { createClient } from "redis";
 
-const redis = createClient({
- url: process.env.REDIS_URL,
-});
+export const config = {
+  runtime: "edge",
+};
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ message: "Method not allowed" });
-  }
+export default async function handler() {
+  const redis = createClient({
+    url: process.env.REDIS_URL!,
+  });
 
-  try {
-    await redis.connect();
+  await redis.connect();
 
-    const newCount = await redis.incr("downloads");
+  const raw = await redis.get("downloads");
+  const count = raw ? parseInt(raw.toString(), 10) : 0;
 
-    await redis.disconnect();
+  const newCount = count + 1;
 
-    res.status(200).json({ count: newCount });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Unable to increment" });
-  }
+  await redis.set("downloads", newCount.toString());
+
+  return new Response(JSON.stringify({ count: newCount }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
 }
