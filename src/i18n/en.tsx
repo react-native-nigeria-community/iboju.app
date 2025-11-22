@@ -32,6 +32,11 @@ export const en = {
         left: "left",
         center: "center",
         right: "right",
+
+        textColorSection: "Text color",
+        titleColor: "Title color",
+        subtitleColor: "Subtitle color",
+        resetTextColor: "Reset to default",
     },
 
     exportPreview: {

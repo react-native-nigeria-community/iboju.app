@@ -11,16 +11,29 @@ export const ExportPreview: React.FC<ExportPreviewProps> = ({
   bgStyle,
   customBg,
   layout,
+  titleColor,
+  subtitleColor,
 }) => {
   const isInverted = layout === "inverted";
 
-  const textStyle = useMemo(
+  const titleStyle = useMemo(
     () => ({
       unicodeBidi: "plaintext" as const,
       direction: "ltr" as const,
       textAlign,
+      color: titleColor,
     }),
-    [textAlign]
+    [textAlign, titleColor]
+  );
+
+  const subtitleStyle = useMemo(
+    () => ({
+      unicodeBidi: "plaintext" as const,
+      direction: "ltr" as const,
+      textAlign,
+      color: subtitleColor,
+    }),
+    [textAlign, subtitleColor]
   );
 
   const containerStyle = useMemo(
@@ -32,19 +45,22 @@ export const ExportPreview: React.FC<ExportPreviewProps> = ({
     [customBg, textAlign]
   );
 
-  const TextBlock = useMemo(
-    () => (
-      <div className="space-y-8">
-        <h2 className="text-8xl font-bold leading-tight" style={textStyle}>
-          {title}
-        </h2>
+  const TextBlock = (
+    <div className="space-y-8">
+      <h2
+        className="text-8xl font-bold leading-tight"
+        style={titleStyle}
+      >
+        {title}
+      </h2>
 
-        <p className="text-5xl text-gray-600 leading-snug" style={textStyle}>
-          {subtitle}
-        </p>
-      </div>
-    ),
-    [title, subtitle, textStyle]
+      <p
+        className="text-5xl leading-snug"
+        style={subtitleStyle}
+      >
+        {subtitle}
+      </p>
+    </div>
   );
 
   const PhoneNotch = () => (

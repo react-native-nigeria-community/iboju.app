@@ -1,3 +1,4 @@
+// src/App.tsx
 import React, {
   useState,
   useRef,
@@ -19,25 +20,21 @@ import { NEW_SCREEN_TEMPLATE } from "./constants";
 
 const App: React.FC = () => {
   const [screens, setScreens] = useState<ScreenItem[]>([NEW_SCREEN_TEMPLATE]);
-
   const [activeIndex, setActiveIndex] = useState<number>(0);
-
   const [sidebarsCollapsed, setSidebarsCollapsed] = useState<boolean>(false);
 
   const exportRef = useRef<HTMLDivElement | null>(null);
   const previewRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  const activeScreen = screens[activeIndex];
-
   const [downloadCount, setDownloadCount] = useState<number>(1);
 
-  /* -------------------------
-      UPDATE CURRENT SCREEN
-  -------------------------- */
+  const activeScreen = screens[activeIndex];
+
   const updateActiveScreen = useCallback(
     (updates: Partial<ScreenItem>) => {
       setScreens((prev) => {
         const updated = [...prev];
+        if (!updated[activeIndex]) return prev;
         updated[activeIndex] = { ...updated[activeIndex], ...updates };
         return updated;
       });
@@ -138,30 +135,26 @@ const App: React.FC = () => {
     saveAs(zipFile, "screens.zip");
   }, [activeIndex, screens.length]);
 
-
+  /* -------------------------
+      ADD SCREEN
+  -------------------------- */
   const addNewScreen = useCallback(() => {
     setScreens((prev) => {
       const next: ScreenItem[] = [
         ...prev,
         {
+          ...NEW_SCREEN_TEMPLATE,
           id: Date.now(),
-          screenshot: null,
-          title: "New Screen",
-          subtitle: "Edit subtitle",
-          textAlign: "center",
-          bgStyle: "bg-white",
-          customBg: null,
-          layout: "default",
         },
       ];
-
-      // Move active index to the new screen
       setActiveIndex(next.length - 1);
-
       return next;
     });
   }, []);
 
+  /* -------------------------
+      DELETE SCREEN
+  -------------------------- */
   const deleteScreen = (id: number) => {
     setScreens((prev) => {
       if (prev.length === 1) return prev;
@@ -179,6 +172,35 @@ const App: React.FC = () => {
       return newScreens;
     });
   };
+
+  /* -------------------------
+      AUTO TEXT COLOR ON PRESET CHANGE
+  -------------------------- */
+  const handlePresetChange = useCallback(
+    (preset: string) => {
+      setScreens((prev) => {
+        const next = [...prev];
+        const current = next[activeIndex];
+        if (!current) return prev;
+
+        // only auto-change if user has NOT customized text colors
+        if (!current.isTextColorCustom) {
+          const isDarkPreset = preset.includes("bg-gray-800");
+          const titleColor = isDarkPreset ? "#F9FAFB" : "#111827";
+          const subtitleColor = isDarkPreset ? "#E5E7EB" : "#4B5563";
+
+          next[activeIndex] = {
+            ...current,
+            titleColor,
+            subtitleColor,
+          };
+        }
+
+        return next;
+      });
+    },
+    [activeIndex]
+  );
 
   /* -------------------------
       SCROLL ACTIVE PREVIEW
@@ -241,7 +263,6 @@ const App: React.FC = () => {
               />
             </svg>
           </a>
-
         </div>
       </header>
 
@@ -265,10 +286,11 @@ const App: React.FC = () => {
                 ref={(el) => {
                   previewRefs.current[idx] = el;
                 }}
-                className={`transition-transform duration-300 inline-block align-top ${idx === activeIndex
-                  ? "scale-100"
-                  : "scale-95 opacity-50"
-                  }`}
+                className={`transition-transform duration-300 inline-block align-top ${
+                  idx === activeIndex
+                    ? "scale-100"
+                    : "scale-95 opacity-50"
+                }`}
                 onClick={() => setActiveIndex(idx)}
               >
                 <div className="w-[350px] h-[700px] relative mt-20">
@@ -285,12 +307,13 @@ const App: React.FC = () => {
                         updateActiveScreen({ subtitle: val });
                       }
                     }}
-
                     screenshot={screen.screenshot}
                     textAlign={screen.textAlign}
                     bgStyle={screen.bgStyle}
                     customBg={screen.customBg}
                     layout={screen.layout}
+                    titleColor={screen.titleColor}
+                    subtitleColor={screen.subtitleColor}
                   />
                 </div>
 
@@ -304,6 +327,8 @@ const App: React.FC = () => {
                     bgStyle={screen.bgStyle}
                     customBg={screen.customBg}
                     layout={screen.layout}
+                    titleColor={screen.titleColor}
+                    subtitleColor={screen.subtitleColor}
                   />
                 )}
               </div>
@@ -317,25 +342,46 @@ const App: React.FC = () => {
           onExportCurrent={handleExport}
           onExportAll={handleExportAll}
         >
-          <Controls
-            bgStyle={activeScreen.bgStyle}
-            customBg={activeScreen.customBg}
-            textAlign={activeScreen.textAlign}
-            layout={activeScreen.layout}
-            setBgStyle={(style: string) =>
-              updateActiveScreen({ bgStyle: style, customBg: null })
-            }
-            setCustomBg={(color: string | null) =>
-              updateActiveScreen({ customBg: color, bgStyle: "" })
-            }
-            setTextAlign={(align: "left" | "center" | "right") =>
-              updateActiveScreen({ textAlign: align })
-            }
-            setLayout={(layout: "default" | "inverted") =>
-              updateActiveScreen({ layout })
-            }
-            handleImageUpload={handleImageUpload}
-          />
+          {activeScreen && (
+            <Controls
+              bgStyle={activeScreen.bgStyle}
+              customBg={activeScreen.customBg}
+              textAlign={activeScreen.textAlign}
+              layout={activeScreen.layout}
+              titleColor={activeScreen.titleColor}
+              subtitleColor={activeScreen.subtitleColor}
+              isTextColorCustom={activeScreen.isTextColorCustom}
+              setBgStyle={(style: string) =>
+                updateActiveScreen({ bgStyle: style, customBg: null })
+              }
+              setCustomBg={(color: string | null) =>
+                updateActiveScreen({ customBg: color, bgStyle: "" })
+              }
+              setTextAlign={(align: "left" | "center" | "right") =>
+                updateActiveScreen({ textAlign: align })
+              }
+              setLayout={(layout: "default" | "inverted") =>
+                updateActiveScreen({ layout })
+              }
+              setTitleColor={(color: string) =>
+                updateActiveScreen({
+                  titleColor: color,
+                  isTextColorCustom: true,
+                })
+              }
+              setSubtitleColor={(color: string) =>
+                updateActiveScreen({
+                  subtitleColor: color,
+                  isTextColorCustom: true,
+                })
+              }
+              setIsTextColorCustom={(isCustom: boolean) =>
+                updateActiveScreen({ isTextColorCustom: isCustom })
+              }
+              onPresetChange={handlePresetChange}
+              handleImageUpload={handleImageUpload}
+            />
+          )}
         </RightSidebar>
       </div>
     </div>

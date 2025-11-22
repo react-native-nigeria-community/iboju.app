@@ -15,5 +15,8 @@ export const NEW_SCREEN_TEMPLATE: ScreenItem = {
   textAlign: "center",
   bgStyle: "bg-white",
   customBg: null,
-  layout: "default"
+  layout: "default",
+  titleColor: "#111827",     
+  subtitleColor: "#4B5563",   
+  isTextColorCustom: false,
 };

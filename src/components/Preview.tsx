@@ -11,6 +11,8 @@ export interface PreviewProps {
   bgStyle: string;
   customBg: string | null;
   layout: "default" | "inverted";
+  titleColor: string;
+  subtitleColor: string;
 }
 
 export const Preview: React.FC<PreviewProps> = ({
@@ -23,6 +25,8 @@ export const Preview: React.FC<PreviewProps> = ({
   bgStyle,
   customBg,
   layout,
+  titleColor,
+  subtitleColor,
 }) => {
   const isInverted = layout === "inverted";
 
@@ -40,6 +44,16 @@ export const Preview: React.FC<PreviewProps> = ({
       subtitleRef.current.textContent = subtitle || "";
     }
   }, [subtitle, layout]);
+
+  const titleStyle: React.CSSProperties = {
+    textAlign,
+    color: titleColor,
+  };
+
+  const subtitleStyle: React.CSSProperties = {
+    textAlign,
+    color: subtitleColor,
+  };
 
   return (
     <div className="flex-1">
@@ -61,8 +75,8 @@ export const Preview: React.FC<PreviewProps> = ({
               suppressContentEditableWarning
               dir="ltr"
               onInput={(e) => setTitle(e.currentTarget.textContent)}
-              className="text-xl font-bold outline-none text-black"
-              style={{ textAlign }}
+              className="text-xl font-bold outline-none"
+              style={titleStyle}
             />
 
             <p
@@ -71,8 +85,8 @@ export const Preview: React.FC<PreviewProps> = ({
               suppressContentEditableWarning
               dir="ltr"
               onInput={(e) => setSubtitle(e.currentTarget.textContent)}
-              className="text-gray-700 outline-none"
-              style={{ textAlign }}
+              className="outline-none"
+              style={subtitleStyle}
             />
           </div>
         )}
@@ -108,8 +122,8 @@ export const Preview: React.FC<PreviewProps> = ({
               suppressContentEditableWarning
               dir="ltr"
               onInput={(e) => setTitle(e.currentTarget.textContent)}
-              className="text-xl font-bold outline-none text-black"
-              style={{ textAlign }}
+              className="text-xl font-bold outline-none"
+              style={titleStyle}
             />
 
             <p
@@ -118,8 +132,8 @@ export const Preview: React.FC<PreviewProps> = ({
               suppressContentEditableWarning
               dir="ltr"
               onInput={(e) => setSubtitle(e.currentTarget.textContent)}
-              className="text-gray-700 outline-none"
-              style={{ textAlign }}
+              className="outline-none"
+              style={subtitleStyle}
             />
           </div>
         )}
