@@ -92,7 +92,7 @@ const renderDesktopFrame = () => (
       <div className="absolute -bottom-7 left-1/2 transform -translate-x-1/2 w-[480px] h-3 bg-black rounded-b-md z-30" />
       
       {screenshot ? (
-        <img src={screenshot} alt="Preview" className={`${isInverted ? "rotate-180" : ""} w-full`} />
+        <img src={screenshot} alt="Preview" className={`${isInverted ? "rotate-180" : ""} w-full h-full object-cover max-w-full max-h-full`} />
       ) : (
         <span className="text-gray-400 text-sm text-center">No screenshot</span>
       )}
