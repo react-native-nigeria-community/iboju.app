@@ -2,6 +2,9 @@ import React, { JSX } from "react";
 import { en } from "../../i18n/en";
 import { LeftSidebarExpandedProps } from "../../global";
 import { CollapseIcon } from "../../icons/CollapseIcon";
+import { TabletIcon } from "../../icons/TabletIcon";
+import { MobileIcon } from "../../icons/MobileIcon";
+import { DesktopIcon } from "../../icons/DesktopIcon";
 
 export const LeftSidebarExpanded = ({
     screens,
@@ -14,9 +17,30 @@ export const LeftSidebarExpanded = ({
     setSearch,
     filteredScreens
 }: LeftSidebarExpandedProps): JSX.Element => {
+    const [showDevicePicker, setShowDevicePicker] = React.useState(false);
+
+const DeviceOption = ({
+  label,
+  icon,
+  onClick,
+}: {
+  label: string;
+  icon: string;
+  onClick: () => void;
+}) => {
+  return (
+    <button
+      onClick={onClick}
+      className="flex flex-col items-center justify-center gap-1 p-3 rounded-md bg-gray-800 hover:bg-gray-700 transition text-xs"
+    >
+      <span className="text-lg">{icon}</span>
+      <span>{label}</span>
+    </button>
+  );
+};
 
     return (
-        <aside className="w-48 bg-[#0D1423] text-white h-full flex flex-col border-r border-gray-800">
+        <aside className="w-48 bg-[#0D1423] text-white h-full flex flex-col border-r border-gray-800 relative">
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
                 <h2 className="text-sm font-semibold tracking-wide">
@@ -25,7 +49,7 @@ export const LeftSidebarExpanded = ({
 
                 <div className="flex items-center gap-2">
                     <button
-                        onClick={addNewScreen}
+                        onClick={() => setShowDevicePicker((v) => !v)}
                         className="text-lg bg-blue-600 rounded px-2 leading-none"
                     >
                         +
@@ -39,6 +63,38 @@ export const LeftSidebarExpanded = ({
                     </button>
                 </div>
             </div>
+
+            {/* Device Picker */}
+        {showDevicePicker && (
+    <div className="absolute right-8 top-10 z-50 bg-[#0D1423] border border-white rounded-lg shadow-lg p-1 flex gap-1">
+        <button
+        onClick={() => {
+        addNewScreen("mobile");
+        setShowDevicePicker(false);
+        }}
+        className="px-2 py-1 text-xs rounded hover:bg-gray-800">
+        <MobileIcon />
+        </button>
+
+        <button
+        onClick={() => {
+        addNewScreen("tablet");
+        setShowDevicePicker(false);
+        }}
+        className="px-2 py-1 text-xs rounded hover:bg-gray-800">
+        <TabletIcon />
+        </button>
+
+        <button
+        onClick={() => {
+        addNewScreen("desktop");
+        setShowDevicePicker(false);
+        }}
+        className="px-2 py-1 text-xs rounded hover:bg-gray-800">
+        <DesktopIcon />
+        </button>
+        </div>
+    )}
 
             {/* Search */}
             {/* You may want to move the search state here, but I'll keep wrapper logic unchanged */}

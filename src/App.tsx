@@ -99,8 +99,7 @@ const handleExport = useCallback(async () => {
   incrementDownload(1);
 
   const exportNode = exportRef.current.cloneNode(true) as HTMLElement;
-  exportNode.style.width = "1290px";
-  exportNode.style.height = "2796px";
+  const {width, height} = exportNode.getBoundingClientRect();
 
   const container = document.createElement("div");
   container.style.position = "absolute";
@@ -109,7 +108,7 @@ const handleExport = useCallback(async () => {
   document.body.appendChild(container);
 
   try {
-    const dataUrl = await toPng(exportNode, { width: 1290, height: 2796 });
+    const dataUrl = await toPng(exportNode, { width: Math.ceil(width), height: Math.ceil(height) });
 
     const link = document.createElement("a");
     link.download = "preview.png";
@@ -147,8 +146,7 @@ const handleExportAll = useCallback(async () => {
     if (!exportRef.current) continue;
 
     const exportNode = exportRef.current.cloneNode(true) as HTMLElement;
-    exportNode.style.width = "1290px";
-    exportNode.style.height = "2796px";
+    const {width, height} = exportNode.getBoundingClientRect();
 
     const container = document.createElement("div");
     container.style.position = "absolute";
@@ -157,7 +155,7 @@ const handleExportAll = useCallback(async () => {
     document.body.appendChild(container);
 
     try {
-      const dataUrl = await toPng(exportNode, { width: 1290, height: 2796 });
+      const dataUrl = await toPng(exportNode, { width: Math.ceil(width), height: Math.ceil(height)});
       const base64 = dataUrl.split(",")[1];
       zip.file(`screen-${i + 1}.png`, base64, { base64: true });
     } catch (err) {
@@ -177,13 +175,15 @@ const handleExportAll = useCallback(async () => {
   /* -------------------------
       ADD SCREEN
   -------------------------- */
-  const addNewScreen = useCallback(() => {
+  type DeviceType = "mobile" | "tablet" | "desktop";
+  const addNewScreen = useCallback((device: DeviceType) => {
     setScreens((prev) => {
       const next: ScreenItem[] = [
         ...prev,
         {
           ...NEW_SCREEN_TEMPLATE,
           id: Date.now(),
+          device,
         },
       ];
       setActiveIndex(next.length - 1);
@@ -331,7 +331,7 @@ const handleExportAll = useCallback(async () => {
                   }`}
                 onClick={() => setActiveIndex(idx)}
               >
-                <div className="w-[350px] h-[700px] relative mt-20">
+                <div className="relative mt-10">
                   <Preview
                     title={screen.title}
                     setTitle={(val: string | null) => {
@@ -352,6 +352,7 @@ const handleExportAll = useCallback(async () => {
                     layout={screen.layout}
                     titleColor={screen.titleColor}
                     subtitleColor={screen.subtitleColor}
+                    device={screen.device}
                   />
                 </div>
 
@@ -367,6 +368,7 @@ const handleExportAll = useCallback(async () => {
                     layout={screen.layout}
                     titleColor={screen.titleColor}
                     subtitleColor={screen.subtitleColor}
+                    device={screen.device}
                   />
                 )}
               </div>

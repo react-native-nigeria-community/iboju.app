@@ -47,6 +47,7 @@ export interface ScreenItem {
   titleColor: string;
   subtitleColor: string;
   isTextColorCustom: boolean;
+  device: "mobile" | "tablet" | "desktop";
 }
 
 export interface ExportPreviewProps {
@@ -60,6 +61,7 @@ export interface ExportPreviewProps {
   layout: "default" | "inverted";
   titleColor: string;
  subtitleColor: string;
+ device: DeviceType;
 }
 
 export interface ScreenItemLeftBar {
@@ -67,18 +69,19 @@ export interface ScreenItemLeftBar {
   title?: string;
 }
 
+type DeviceType = "mobile" | "tablet" | "desktop";
 export interface LeftSidebarProps {
   screens: ScreenItemLeftBar[];
   activeIndex: number;
   setActiveIndex: (index: number) => void;
-  addNewScreen: () => void;
+  addNewScreen: (device: DeviceType) => void;
   deleteScreen: (id: number) => void;
   sidebarsCollapsed: boolean;
   setSidebarsCollapsed: (collapsed: boolean) => void;
 }
 
 export interface LeftSidebarPillProps {
-  addNewScreen: () => void;
+  addNewScreen: (device: DeviceType) => void;
   setSidebarsCollapsed: (value: boolean) => void;
 }
 
