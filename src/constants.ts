@@ -19,4 +19,5 @@ export const NEW_SCREEN_TEMPLATE: ScreenItem = {
   titleColor: "#111827",     
   subtitleColor: "#4B5563",   
   isTextColorCustom: false,
+  device: "mobile",
 };

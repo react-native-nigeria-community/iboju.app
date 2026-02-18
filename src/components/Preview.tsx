@@ -13,6 +13,7 @@ export interface PreviewProps {
   layout: "default" | "inverted";
   titleColor: string;
   subtitleColor: string;
+  device: "mobile" | "tablet" | "desktop";
 }
 
 export const Preview: React.FC<PreviewProps> = ({
@@ -27,6 +28,7 @@ export const Preview: React.FC<PreviewProps> = ({
   layout,
   titleColor,
   subtitleColor,
+  device,
 }) => {
   const isInverted = layout === "inverted";
 
@@ -55,10 +57,66 @@ export const Preview: React.FC<PreviewProps> = ({
     color: subtitleColor,
   };
 
+  const renderMobileFrame = () => (
+  <div className="bg-black rounded-[32px] p-2 border-4 border-black shadow-md">
+    <div className="w-[220px] h-[440px] bg-white rounded-[24px] overflow-hidden relative flex items-center justify-center">
+      {/* notch */}
+      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-3 bg-black rounded-b-xl z-10" />
+      {screenshot ? (
+        <img src={screenshot} alt="Preview" className={`${isInverted ? "rotate-180" : ""} w-full`} />
+      ) : (
+        <span className="text-gray-400 text-sm text-center">No screenshot</span>
+      )}
+    </div>
+  </div>
+);
+
+const renderTabletFrame = () => (
+  <div className="bg-[black] rounded-xl p-3 shadow-md">
+    <div className="w-[420px] h-[560px] bg-white rounded-[20px] overflow-hidden relative flex items-center justify-center">
+      {/* camera */}
+      <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-[black] rounded-xl z-10"/>
+      {screenshot ? (
+        <img src={screenshot} alt="Preview" className={`${isInverted ? "rotate-180" : ""} w-full`} />
+      ) : (
+        <span className="text-gray-400 text-sm text-center">No screenshot</span>
+      )}
+    </div>
+  </div>
+);
+
+const renderDesktopFrame = () => (
+  <div className="bg-black rounded-lg p-4 shadow-lg">
+    <div className="w-[900px] h-[520px] bg-white rounded-md flex items-center justify-center relative">
+      {/* base */}
+      <div className="absolute -bottom-7 left-1/2 transform -translate-x-1/2 w-[480px] h-3 bg-black rounded-b-md z-30" />
+      
+      {screenshot ? (
+        <img src={screenshot} alt="Preview" className={`${isInverted ? "rotate-180" : ""} w-full h-full object-cover max-w-full max-h-full`} />
+      ) : (
+        <span className="text-gray-400 text-sm text-center">No screenshot</span>
+      )}
+    </div>
+  </div>
+);
+
+const renderDeviceFrame = () => {
+  switch (device) {
+    case "mobile":
+      return renderMobileFrame();
+    case "tablet":
+      return renderTabletFrame();
+    case "desktop":
+      return renderDesktopFrame();
+    default:
+      return renderMobileFrame();
+  }
+};
+
   return (
     <div className="flex-1">
       <div
-        className={`relative w-full max-w-md mx-auto p-6 rounded-xl shadow-xl flex flex-col ${
+        className={`relative w-full max-w-[1200px] mx-auto p-6 rounded-xl shadow-xl flex flex-col ${
           customBg ? "" : bgStyle
         } h-[700px] overflow-hidden`}
         style={{
@@ -93,24 +151,7 @@ export const Preview: React.FC<PreviewProps> = ({
 
         {/* PHONE MOCKUP */}
         <div className="flex justify-center items-center flex-1">
-          <div className="bg-black rounded-[32px] p-2 border-4 border-black shadow-md">
-            <div className="w-[220px] h-[440px] bg-white rounded-[24px] overflow-hidden relative flex items-center justify-center">
-              {/* notch */}
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-3 bg-black rounded-b-xl z-10" />
-
-              {screenshot ? (
-                <img
-                  src={screenshot}
-                  alt={en.preview.altScreenshot}
-                  className={`w-full ${isInverted ? "rotate-180" : ""}`}
-                />
-              ) : (
-                <span className="text-gray-400 text-sm text-center">
-                  {en.preview.noScreenshot}
-                </span>
-              )}
-            </div>
-          </div>
+          {renderDeviceFrame()}
         </div>
 
         {/* TITLE + SUBTITLE (inverted layout) */}
