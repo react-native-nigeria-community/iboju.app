@@ -13,6 +13,8 @@ export const ExportPreview: React.FC<ExportPreviewProps> = ({
   layout,
   titleColor,
   subtitleColor,
+  titleFont,
+  subtitleFont,
 }) => {
   const isInverted = layout === "inverted";
 
@@ -22,8 +24,9 @@ export const ExportPreview: React.FC<ExportPreviewProps> = ({
       direction: "ltr" as const,
       textAlign,
       color: titleColor,
+      fontFamily: titleFont,
     }),
-    [textAlign, titleColor]
+    [textAlign, titleColor, titleFont],
   );
 
   const subtitleStyle = useMemo(
@@ -32,8 +35,9 @@ export const ExportPreview: React.FC<ExportPreviewProps> = ({
       direction: "ltr" as const,
       textAlign,
       color: subtitleColor,
+      fontFamily: subtitleFont,
     }),
-    [textAlign, subtitleColor]
+    [textAlign, subtitleColor, subtitleFont],
   );
 
   const containerStyle = useMemo(
@@ -42,22 +46,16 @@ export const ExportPreview: React.FC<ExportPreviewProps> = ({
       textAlign,
       background: customBg || undefined,
     }),
-    [customBg, textAlign]
+    [customBg, textAlign],
   );
 
   const TextBlock = (
     <div className="space-y-8">
-      <h2
-        className="text-8xl font-bold leading-tight"
-        style={titleStyle}
-      >
+      <h2 className="text-8xl font-bold leading-tight" style={titleStyle}>
         {title}
       </h2>
 
-      <p
-        className="text-5xl leading-snug"
-        style={subtitleStyle}
-      >
+      <p className="text-5xl leading-snug" style={subtitleStyle}>
         {subtitle}
       </p>
     </div>

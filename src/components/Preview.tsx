@@ -13,6 +13,10 @@ export interface PreviewProps {
   layout: "default" | "inverted";
   titleColor: string;
   subtitleColor: string;
+  titleFont: string;
+  subtitleFont: string;
+  titleFontSize: number;
+  subtitleFontSize: number;
 }
 
 export const Preview: React.FC<PreviewProps> = ({
@@ -27,6 +31,10 @@ export const Preview: React.FC<PreviewProps> = ({
   layout,
   titleColor,
   subtitleColor,
+  titleFont,
+  subtitleFont,
+  titleFontSize,
+  subtitleFontSize,
 }) => {
   const isInverted = layout === "inverted";
 
@@ -48,11 +56,17 @@ export const Preview: React.FC<PreviewProps> = ({
   const titleStyle: React.CSSProperties = {
     textAlign,
     color: titleColor,
+    fontFamily: titleFont,
+    fontSize: `${titleFontSize}px`,
+    lineHeight: 1.2,
   };
 
   const subtitleStyle: React.CSSProperties = {
     textAlign,
     color: subtitleColor,
+    fontFamily: subtitleFont,
+    fontSize: `${subtitleFontSize}px`,
+    lineHeight: 1.35,
   };
 
   return (

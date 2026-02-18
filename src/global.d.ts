@@ -20,6 +20,11 @@ export interface ControlsProps {
   subtitleColor: string;
   isTextColorCustom: boolean;
 
+  titleFont: string;
+  subtitleFont: string;
+  titleFontSize: number;
+  subtitleFontSize: number;
+
   setBgStyle: (value: string) => void;
   setCustomBg: (value: string | null) => void;
   setTextAlign: (value: "left" | "center" | "right") => void;
@@ -28,6 +33,11 @@ export interface ControlsProps {
   setTitleColor: (value: string) => void;
   setSubtitleColor: (value: string) => void;
   setIsTextColorCustom: (value: boolean) => void;
+
+  setTitleFont: (value: string) => void;
+  setSubtitleFont: (value: string) => void;
+  setTitleFontSize: (value: number) => void;
+  setSubtitleFontSize: (value: number) => void;
 
   handleImageUpload: (e: ChangeEvent<HTMLInputElement>) => void;
 
@@ -43,10 +53,14 @@ export interface ScreenItem {
   textAlign: "left" | "center" | "right";
   bgStyle: string;
   customBg: string | null;
-  layout: "default" | "inverted"; 
+  layout: "default" | "inverted";
   titleColor: string;
   subtitleColor: string;
   isTextColorCustom: boolean;
+  titleFont: string;
+  subtitleFont: string;
+  titleFontSize: number;
+  subtitleFontSize: number;
 }
 
 export interface ExportPreviewProps {
@@ -59,7 +73,9 @@ export interface ExportPreviewProps {
   customBg: string | null;
   layout: "default" | "inverted";
   titleColor: string;
- subtitleColor: string;
+  subtitleColor: string;
+  titleFont: string;
+  subtitleFont: string;
 }
 
 export interface ScreenItemLeftBar {
@@ -97,13 +113,3 @@ export interface RightSidebarProps {
   onExportAll: () => void;
 }
 
-export interface ScreenItem {
-  id: number;
-  screenshot: string | null;
-  title: string;
-  subtitle: string;
-  textAlign: "left" | "center" | "right";
-  bgStyle: string;
-  customBg: string | null;
-  layout: "default" | "inverted";
-}
