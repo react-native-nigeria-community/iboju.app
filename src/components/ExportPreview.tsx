@@ -135,7 +135,7 @@ const DesktopBase = () => (
                 <img
                   src={screenshot}
                   alt={en.exportPreview.altScreenshot}
-                  className={`object-cover w-full h-full ${
+                  className={`${device === "desktop" ? "object-cover h-full" : ""} w-full ${
                     isInverted ? "rotate-180" : ""
                   }`}
                 />
