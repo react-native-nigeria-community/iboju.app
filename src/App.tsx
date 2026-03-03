@@ -16,7 +16,7 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import { ScreenItem } from "./global";
 import { isAllowedDevice } from "./utils";
-import { NEW_SCREEN_TEMPLATE } from "./constants";
+import { DESKTOP_MONITOR,IPHONE_15, NEW_SCREEN_TEMPLATE, SAMSUNG_TAB_S9 } from "./constants";
 
 const App: React.FC = () => {
   const [screens, setScreens] = useState<ScreenItem[]>([NEW_SCREEN_TEMPLATE]);
@@ -176,14 +176,19 @@ const handleExportAll = useCallback(async () => {
       ADD SCREEN
   -------------------------- */
   type DeviceType = "mobile" | "tablet" | "desktop";
-  const addNewScreen = useCallback((device: DeviceType) => {
+  const addNewScreen = useCallback((deviceType: DeviceType) => {
+
+    const deviceDefault = deviceType === "mobile" ? IPHONE_15
+      : deviceType === "tablet" ? SAMSUNG_TAB_S9
+      : DESKTOP_MONITOR;
     setScreens((prev) => {
       const next: ScreenItem[] = [
         ...prev,
         {
           ...NEW_SCREEN_TEMPLATE,
           id: Date.now(),
-          device,
+          device: deviceDefault,
+          positionPreset: "centered",
         },
       ];
       setActiveIndex(next.length - 1);
@@ -353,6 +358,7 @@ const handleExportAll = useCallback(async () => {
                     titleColor={screen.titleColor}
                     subtitleColor={screen.subtitleColor}
                     device={screen.device}
+                    positionPreset={screen.positionPreset}
                   />
                 </div>
 
@@ -369,6 +375,7 @@ const handleExportAll = useCallback(async () => {
                     titleColor={screen.titleColor}
                     subtitleColor={screen.subtitleColor}
                     device={screen.device}
+                    positionPreset={screen.positionPreset}
                   />
                 )}
               </div>
@@ -420,6 +427,10 @@ const handleExportAll = useCallback(async () => {
               }
               onPresetChange={handlePresetChange}
               handleImageUpload={handleImageUpload}
+              device={activeScreen.device}
+              setDevice={(device) => updateActiveScreen({ device })}
+              positionPreset={activeScreen.positionPreset}
+              setPositionPreset={(preset) => updateActiveScreen({ positionPreset: preset })}
             />
           )}
         </RightSidebar>

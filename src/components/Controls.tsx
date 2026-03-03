@@ -2,6 +2,8 @@
 import React, { ChangeEvent, useState, useEffect } from "react";
 import { en } from "../i18n/en";
 import { ControlsProps } from "../global";
+import { DEVICES_BY_CATEGORY } from "../constants";
+import { PositionPresets } from "./PositionPresets";
 
 /* ------------------------------------------
    Collapsible Section Component (Figma-style)
@@ -77,6 +79,10 @@ export const Controls: React.FC<ControlsProps> = ({
   setIsTextColorCustom,
   handleImageUpload,
   onPresetChange,
+  device,
+  setDevice,
+  positionPreset,
+  setPositionPreset,
 }) => {
   const handleCustomColorChange = (e: ChangeEvent<HTMLInputElement>) =>
     setCustomBg(e.target.value);
@@ -107,6 +113,15 @@ export const Controls: React.FC<ControlsProps> = ({
     setIsTextColorCustom(false);
   };
 
+  // Flat list of all devices for lookup by id 
+  const allDevices = Object.values(DEVICES_BY_CATEGORY).flat();
+
+  const handleDeviceChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const selected = allDevices.find((d) => d.id === e.target.value);
+    if (selected) setDevice(selected);
+  };
+
+
   return (
     <div className="space-y-4 text-sm">
       {/* =============================
@@ -124,6 +139,38 @@ export const Controls: React.FC<ControlsProps> = ({
           className="block w-full text-xs text-gray-100 bg-[#111827] border border-gray-700 rounded-md px-2 py-1.5 
           file:mr-3 file:px-3 file:py-1 file:rounded file:border-0 
           file:text-xs file:bg-blue-600 file:text-white hover:file:bg-blue-500"
+        />
+      </SidebarSection>
+
+         {/* =============================
+          SECTION: Device
+      ============================== */}
+      <SidebarSection id="device" title={en.controls.device} defaultOpen>
+        <select
+          className="w-full bg-[#111827] border border-gray-700 rounded-md px-2 py-1.5 text-xs text-gray-100
+          focus:outline-none focus:ring-1 focus:ring-blue-500"
+          value={device.id}
+          onChange={handleDeviceChange}
+        >
+          {Object.entries(DEVICES_BY_CATEGORY).map(([category, devices]) => (
+            <optgroup key={category} label={category}>
+              {devices.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name} — {d.frame.width}×{d.frame.height}px
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </SidebarSection>
+
+      {/* =============================
+          SECTION: Position Presets
+      ============================== */}
+      <SidebarSection id="positionPresets" title={en.controls.positionPreset} defaultOpen>
+        <PositionPresets
+          value={positionPreset}
+          onChange={setPositionPreset}
         />
       </SidebarSection>
 

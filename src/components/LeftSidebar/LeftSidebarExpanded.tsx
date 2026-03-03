@@ -1,4 +1,4 @@
-import React, { JSX } from "react";
+import React, { JSX, useEffect, useRef } from "react";
 import { en } from "../../i18n/en";
 import { LeftSidebarExpandedProps } from "../../global";
 import { CollapseIcon } from "../../icons/CollapseIcon";
@@ -18,30 +18,24 @@ export const LeftSidebarExpanded = ({
     filteredScreens
 }: LeftSidebarExpandedProps): JSX.Element => {
     const [showDevicePicker, setShowDevicePicker] = React.useState(false);
+    const pickerRef = useRef<HTMLDivElement | null>(null);
 
-const DeviceOption = ({
-  label,
-  icon,
-  onClick,
-}: {
-  label: string;
-  icon: string;
-  onClick: () => void;
-}) => {
-  return (
-    <button
-      onClick={onClick}
-      className="flex flex-col items-center justify-center gap-1 p-3 rounded-md bg-gray-800 hover:bg-gray-700 transition text-xs"
-    >
-      <span className="text-lg">{icon}</span>
-      <span>{label}</span>
-    </button>
-  );
-};
+ useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+                setShowDevicePicker(false);
+            }
+        };
+        if (showDevicePicker) {
+            document.addEventListener("mousedown", handler);
+        }
+        return () => document.removeEventListener("mousedown", handler);
+    }, [showDevicePicker]);
 
     return (
         <aside className="w-48 bg-[#0D1423] text-white h-full flex flex-col border-r border-gray-800 relative">
             {/* Header */}
+            <div ref={pickerRef}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
                 <h2 className="text-sm font-semibold tracking-wide">
                     {en.leftSidebar.screens}
@@ -64,49 +58,61 @@ const DeviceOption = ({
                 </div>
             </div>
 
-            {/* Device Picker */}
-        {showDevicePicker && (
-    <div className="absolute right-8 top-10 z-50 bg-[#0D1423] border border-white rounded-lg shadow-lg p-1 flex gap-1">
-        <button
-        onClick={() => {
-        addNewScreen("mobile");
-        setShowDevicePicker(false);
-        }}
-        className="px-2 py-1 text-xs rounded hover:bg-gray-800">
-        <MobileIcon />
-        </button>
-
-        <button
-        onClick={() => {
-        addNewScreen("tablet");
-        setShowDevicePicker(false);
-        }}
-        className="px-2 py-1 text-xs rounded hover:bg-gray-800">
-        <TabletIcon />
-        </button>
-
-        <button
-        onClick={() => {
-        addNewScreen("desktop");
-        setShowDevicePicker(false);
-        }}
-        className="px-2 py-1 text-xs rounded hover:bg-gray-800">
-        <DesktopIcon />
-        </button>
-        </div>
-    )}
 
             {/* Search */}
             {/* You may want to move the search state here, but I'll keep wrapper logic unchanged */}
-            <div className="p-4">
+            
                 {/* This input is intentionally static. Wrapper manages search state if needed. */}
-                <input
+                <div className="p-4">
+               <div className="h-9">
+                    {
+                    showDevicePicker ? (
+                        <div className="flex gap-1 bg-gray-900 border border-gray-700 rounded-lg p-1">
+                        <button
+                            onClick={() => {
+                                addNewScreen("mobile");
+                                setShowDevicePicker(false);
+                            }}
+                            title="Mobile"
+                            className="flex-1 flex items-center justify-center py-1.5 rounded hover:bg-gray-700 transition"
+                        >
+                            <MobileIcon />
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                addNewScreen("tablet");
+                                setShowDevicePicker(false);
+                            }}
+                            title="Tablet"
+                            className="flex-1 flex items-center justify-center py-1.5 rounded hover:bg-gray-700 transition"
+                        >
+                            <TabletIcon />
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                addNewScreen("desktop");
+                                setShowDevicePicker(false);
+                            }}
+                            title="Desktop"
+                            className="flex-1 flex items-center justify-center py-1.5 rounded hover:bg-gray-700 transition"
+                        >
+                            <DesktopIcon />
+                        </button>
+                    </div>
+                    ) : (
+                        <input
                     type="text"
                     placeholder={en.leftSidebar.searchPlaceholder}
                     className="w-full text-sm px-3 py-2 rounded bg-gray-900 border border-gray-700"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
+                    )
+                }
+               </div>
+            </div>
             </div>
 
             {/* List */}

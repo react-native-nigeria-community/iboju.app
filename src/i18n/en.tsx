@@ -37,6 +37,20 @@ export const en = {
         titleColor: "Title color",
         subtitleColor: "Subtitle color",
         resetTextColor: "Reset to default",
+
+        device: "Device",
+        positionPreset: "Position",
+    },
+
+    positionPresets: {
+        centered: "Centered",
+        bleedBottom: "Bleed Bottom",
+        bleedTop: "Bleed Top",
+        floatCenter: "Float Center",
+        floatBottom: "Float Bottom",
+        tiltLeft: "Tilt Left",
+        tiltRight: "Tilt Right",
+        perspective: "Perspective",
     },
 
     exportPreview: {

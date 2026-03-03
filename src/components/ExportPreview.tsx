@@ -1,6 +1,40 @@
 import React, { useMemo } from "react";
-import { ExportPreviewProps } from "../global";
+import { ExportPreviewProps, PositionPreset } from "../global";
 import { en } from "../i18n/en";
+import { POSITION_PRESET_EXPORT_STYLES } from "../utils/presetstyles";
+
+
+// Derive transform styles dynamically based on scaled frame dimensions
+const getExportDeviceStyle = (
+  preset: PositionPreset,
+  scaledWidth: number,
+  scaledHeight: number
+): React.CSSProperties => {
+  const p = scaledWidth * 4;
+  const shadow = `drop-shadow(0 ${scaledHeight * 0.06}px ${scaledHeight * 0.1}px rgba(0,0,0,0.45))`;
+
+  switch (preset) {
+    case "centered":     return {};
+    case "bleed-bottom": return { transform: "translateY(30%)" };
+    case "bleed-top":    return { transform: "translateY(-30%)" };
+    case "float-center": return { transform: `translateY(-${scaledHeight * 0.06}px)`, filter: shadow };
+    case "float-bottom": return { transform: `translateY(${scaledHeight * 0.05}px)`,  filter: shadow };
+    case "tilt-left":    return { transform: "rotate(-8deg) translateY(-8px)" };
+    case "tilt-right":   return { transform: "rotate(8deg) translateY(-8px)" };
+    case "perspective":  return { transform: `perspective(${p}px) rotateY(12deg)` };
+  }
+};
+
+const DEVICE_CONTAINER_ALIGN: Record<PositionPreset, string> = {
+  "centered":     "items-center",
+  "bleed-bottom": "items-end",
+  "bleed-top":    "items-start",
+  "float-center": "items-center",
+  "float-bottom": "items-end",
+  "tilt-left":    "items-center",
+  "tilt-right":   "items-center",
+  "perspective":  "items-center",
+};
 
 export const ExportPreview: React.FC<ExportPreviewProps> = ({
   exportRef,
@@ -14,6 +48,7 @@ export const ExportPreview: React.FC<ExportPreviewProps> = ({
   titleColor,
   subtitleColor,
   device,
+  positionPreset
 }) => {
   const isInverted = layout === "inverted";
 
@@ -46,31 +81,24 @@ export const ExportPreview: React.FC<ExportPreviewProps> = ({
     [customBg, textAlign]
   );
 
-  const deviceConfig = {
-  mobile: {
-    outer: "rounded-[110px] border-[10px]",
-    inner: "w-[950px] h-[1900px] rounded-[106px]",
-    showNotch: true,
-    showCamera: false,
-    showBase: false,
-  },
-  tablet: {
-    outer: "rounded-[60px] border-[8px]",
-    inner: "w-[1400px] h-[1900px] rounded-[48px]",
-    showNotch: false,
-    showCamera: true,
-    showBase: false,
-  },
-  desktop: {
-    outer: "rounded-[24px] border-[6px] ",
-    inner: "w-[2000px] h-[1200px] rounded-[20px] pb-12",
-    showNotch: false,
-    showCamera: false,
-    showBase: true,
-  },
-} as const;
+ // ─── Derive export config from DeviceConfig ───────────────────────────────
+  // Scale factor: export canvas is ~6× the preview frame size
+  const SCALE = 4;
 
-const config = deviceConfig[device];
+  const scaledWidth  = device.frame.width  * SCALE;
+  const scaledHeight = device.frame.height * SCALE;
+  const scaledRadius = device.frame.radius * SCALE;
+  const innerRadius  = Math.max(scaledRadius - 12, 0);
+
+  const showNotch  = device.extras === "notch";
+  const showCamera = device.extras === "camera";
+  const showBase   = device.extras === "stand";
+  const isDesktop  = device.category === "desktop";
+
+  // Canvas dimensions: portrait devices get portrait canvas, desktop gets landscape
+  const exportCanvasSize = isDesktop
+    ? { width: 2600, height: 1800 }
+    : { width: Math.max(scaledWidth + 400, 1290), height: Math.max(scaledHeight + 400, 2400) };
 
   const TextBlock = (
     <div className="space-y-8">
@@ -91,24 +119,18 @@ const config = deviceConfig[device];
   );
 
   const PhoneNotch = () => (
-    <>
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-52 h-9 bg-black rounded-b-full z-10" />
-    </>
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-52 h-9 bg-black rounded-b-full z-10" />
   );
 
   const TabletCamera = () => (
-  <div className="absolute top-4 left-1/2 -translate-x-1/2 w-10 h-10 bg-black rounded-full z-10" />
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 w-10 h-10 bg-black rounded-full z-10" />
   );
 
-const DesktopBase = () => (
-  <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 w-[520px] h-9 bg-black rounded-b-lg z-30" />
+  const DesktopBase = () => (
+    <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 w-[520px] h-9 bg-black rounded-b-lg z-30" />
   );
 
-  const exportCanvasSize = {
-  mobile: { width: 1290, height: 2796 },
-  tablet: { width: 1800, height: 2796 },
-  desktop: { width: 2600, height: 1800 },
-}[device];
+  
 
   return (
     <div className="invisible absolute pointer-events-none">
@@ -125,27 +147,48 @@ const DesktopBase = () => (
         {!isInverted && TextBlock}
 
         <div className="flex-1 flex items-center justify-center">
-          <div className={`bg-black p-6 border-black ${config.outer}`}>
-            <div className={`bg-white relative flex items-center justify-center ${config.inner}`}>
-              {config.showNotch && <PhoneNotch />}
-              {config.showCamera && <TabletCamera />}
-              {config.showBase && <DesktopBase />}
+          <div style={getExportDeviceStyle(positionPreset, scaledWidth, scaledHeight)}>
+<div className={`bg-black p-6 border-black`} style={{
+              borderRadius: scaledRadius,
+              padding: device.frame.padding * SCALE * 0.8,
+            }}>
+            <div className={`bg-white relative flex items-center justify-center`} style={{
+                width: scaledWidth,
+                height: scaledHeight,
+                borderRadius: innerRadius,
+                paddingBottom: isDesktop ? 48 : 0,
+              }}>
+              {showNotch  && <PhoneNotch />}
+              {showCamera && <TabletCamera />}
+              {showBase   && <DesktopBase />}
+
+              <div className="overflow-hidden" style={{
+                  top:    device.screen.safeTop    * SCALE * 0.5,
+                  bottom: device.screen.safeBottom * SCALE * 0.5,
+                  left:   device.screen.safeLeft,
+                  right:  device.screen.safeRight,
+                }}>
+
+              
 
               {screenshot ? (
                 <img
                   src={screenshot}
                   alt={en.exportPreview.altScreenshot}
-                  className={`${device === "desktop" ? "object-cover h-full" : ""} w-full ${
-                    isInverted ? "rotate-180" : ""
-                  }`}
+                  className={`${isDesktop ? "object-cover" : ""} w-full h-full ${
+                      isInverted ? "rotate-180" : ""
+                    }`}
                 />
               ) : (
                 <span className="text-gray-400 text-2xl text-center">
                   {en.exportPreview.noScreenshot}
                 </span>
               )}
+              </div>
             </div>
           </div>
+          </div>
+          
         </div>
 
         {isInverted && <div className="mt-16">{TextBlock}</div>}

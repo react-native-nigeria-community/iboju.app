@@ -1,5 +1,39 @@
 import React, { useRef, useEffect } from "react";
 import { en } from "../i18n/en";
+import { DeviceConfig, PositionPreset } from "../global";
+
+// Presets that need the canvas to NOT clip the device
+const BLEED_PRESETS: PositionPreset[] = ["bleed-bottom", "bleed-top"];
+
+// Style applied to the device wrapper div
+const DEVICE_WRAPPER_STYLES: Record<PositionPreset, React.CSSProperties> = {
+  "centered":     {},
+  "bleed-bottom": { transform: "translateY(30%)" },
+  "bleed-top":    { transform: "translateY(-30%)" },
+  "float-center": {
+    transform: "translateY(-12px)",
+    filter: "drop-shadow(0 24px 32px rgba(0,0,0,0.35))",
+  },
+  "float-bottom": {
+    transform: "translateY(20px)",
+    filter: "drop-shadow(0 24px 32px rgba(0,0,0,0.35))",
+  },
+  "tilt-left":    { transform: "rotate(-8deg) translateY(-8px)" },
+  "tilt-right":   { transform: "rotate(8deg) translateY(-8px)" },
+  "perspective":  { transform: "perspective(600px) rotateY(12deg)" },
+};
+
+// Alignment of the flex container holding the device
+const DEVICE_CONTAINER_ALIGN: Record<PositionPreset, string> = {
+  "centered":     "items-center",
+  "bleed-bottom": "items-end",
+  "bleed-top":    "items-start",
+  "float-center": "items-center",
+  "float-bottom": "items-end",
+  "tilt-left":    "items-center",
+  "tilt-right":   "items-center",
+  "perspective":  "items-center",
+};
 
 export interface PreviewProps {
   title: string;
@@ -13,7 +47,8 @@ export interface PreviewProps {
   layout: "default" | "inverted";
   titleColor: string;
   subtitleColor: string;
-  device: "mobile" | "tablet" | "desktop";
+  device: DeviceConfig;
+  positionPreset: PositionPreset;
 }
 
 export const Preview: React.FC<PreviewProps> = ({
@@ -29,8 +64,10 @@ export const Preview: React.FC<PreviewProps> = ({
   titleColor,
   subtitleColor,
   device,
+  positionPreset,
 }) => {
   const isInverted = layout === "inverted";
+  const isBleed = BLEED_PRESETS.includes(positionPreset);
 
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const subtitleRef = useRef<HTMLParagraphElement | null>(null);
@@ -57,60 +94,64 @@ export const Preview: React.FC<PreviewProps> = ({
     color: subtitleColor,
   };
 
-  const renderMobileFrame = () => (
-  <div className="bg-black rounded-[32px] p-2 border-4 border-black shadow-md">
-    <div className="w-[220px] h-[440px] bg-white rounded-[24px] overflow-hidden relative flex items-center justify-center">
-      {/* notch */}
-      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-3 bg-black rounded-b-xl z-10" />
-      {screenshot ? (
-        <img src={screenshot} alt="Preview" className={`${isInverted ? "rotate-180" : ""} w-full`} />
-      ) : (
-        <span className="text-gray-400 text-sm text-center">No screenshot</span>
-      )}
-    </div>
-  </div>
-);
-
-const renderTabletFrame = () => (
-  <div className="bg-[black] rounded-xl p-3 shadow-md">
-    <div className="w-[420px] h-[560px] bg-white rounded-[20px] overflow-hidden relative flex items-center justify-center">
-      {/* camera */}
-      <div className="absolute top-3 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-[black] rounded-xl z-10"/>
-      {screenshot ? (
-        <img src={screenshot} alt="Preview" className={`${isInverted ? "rotate-180" : ""} w-full`} />
-      ) : (
-        <span className="text-gray-400 text-sm text-center">No screenshot</span>
-      )}
-    </div>
-  </div>
-);
-
-const renderDesktopFrame = () => (
-  <div className="bg-black rounded-lg p-4 shadow-lg">
-    <div className="w-[900px] h-[520px] bg-white rounded-md flex items-center justify-center relative">
-      {/* base */}
-      <div className="absolute -bottom-7 left-1/2 transform -translate-x-1/2 w-[480px] h-3 bg-black rounded-b-md z-30" />
-      
-      {screenshot ? (
-        <img src={screenshot} alt="Preview" className={`${isInverted ? "rotate-180" : ""} w-full h-full object-cover max-w-full max-h-full`} />
-      ) : (
-        <span className="text-gray-400 text-sm text-center">No screenshot</span>
-      )}
-    </div>
-  </div>
-);
-
 const renderDeviceFrame = () => {
-  switch (device) {
-    case "mobile":
-      return renderMobileFrame();
-    case "tablet":
-      return renderTabletFrame();
-    case "desktop":
-      return renderDesktopFrame();
-    default:
-      return renderMobileFrame();
-  }
+  const { frame, screen, extras } = device;
+
+  return (
+    <div
+      className="bg-black shadow-md"
+      style={{
+        borderRadius: frame.radius,
+        padding: frame.padding,
+      }}
+    >
+      <div
+        className="bg-white relative  flex items-center justify-center"
+        style={{
+          width: frame.width,
+          height: frame.height,
+          borderRadius: frame.radius - 8,
+        }}
+      >
+        {/* NOTCH */}
+        {extras === "notch" && (
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-3 bg-black rounded-b-xl z-10" />
+        )}
+
+        {/* CAMERA */}
+        {extras === "camera" && (
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 w-3 h-3 bg-black rounded-full z-10" />
+        )}
+
+         {extras === "stand" && (
+            <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 w-34 h-4 bg-black rounded-b-md z-10" />
+          )}
+
+        {/* SCREEN */}
+        <div
+          className="absolute overflow-hidden"
+          style={{
+            top: screen.safeTop,
+            bottom: screen.safeBottom,
+            left: screen.safeLeft,
+            right: screen.safeRight,
+          }}
+        >
+          {screenshot ? (
+            <img
+              src={screenshot}
+              alt="Preview"
+              className={`w-full h-full object-contain`}
+            />
+          ) : (
+            <span className="text-gray-400 text-sm flex items-center justify-center h-full">
+              No screenshot
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
   return (
@@ -150,8 +191,10 @@ const renderDeviceFrame = () => {
         )}
 
         {/* PHONE MOCKUP */}
-        <div className="flex justify-center items-center flex-1">
-          {renderDeviceFrame()}
+        <div className={`flex justify-center items-center flex-1 ${DEVICE_CONTAINER_ALIGN[positionPreset]}`}>
+          <div style={DEVICE_WRAPPER_STYLES[positionPreset]}>
+    {renderDeviceFrame()}
+  </div>
         </div>
 
         {/* TITLE + SUBTITLE (inverted layout) */}

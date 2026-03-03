@@ -10,6 +10,16 @@ interface ColorPickerProps {
   setBgStyle: (style: string) => void;
 }
 
+export type PositionPreset =
+  | "centered"
+  | "bleed-bottom"
+  | "bleed-top"
+  | "float-center"
+  | "float-bottom"
+  | "tilt-left"
+  | "tilt-right"
+  | "perspective";
+
 export interface ControlsProps {
   bgStyle: string;
   customBg: string | null;
@@ -33,6 +43,12 @@ export interface ControlsProps {
 
   // NEW: notify parent when a preset is chosen so it can auto-adjust colors
   onPresetChange?: (preset: string) => void;
+
+  device: DeviceConfig;
+  setDevice: (device: DeviceConfig) => void;
+
+  positionPreset: PositionPreset;
+  setPositionPreset: (preset: PositionPreset) => void;
 }
 
 export interface ScreenItem {
@@ -47,7 +63,8 @@ export interface ScreenItem {
   titleColor: string;
   subtitleColor: string;
   isTextColorCustom: boolean;
-  device: "mobile" | "tablet" | "desktop";
+  device: DeviceConfig;
+  positionPreset: PositionPreset;
 }
 
 export interface ExportPreviewProps {
@@ -61,7 +78,8 @@ export interface ExportPreviewProps {
   layout: "default" | "inverted";
   titleColor: string;
  subtitleColor: string;
- device: DeviceType;
+ device: DeviceConfig;
+ positionPreset: PositionPreset;
 }
 
 export interface ScreenItemLeftBar {
@@ -70,6 +88,7 @@ export interface ScreenItemLeftBar {
 }
 
 type DeviceType = "mobile" | "tablet" | "desktop";
+
 export interface LeftSidebarProps {
   screens: ScreenItemLeftBar[];
   activeIndex: number;
@@ -109,4 +128,23 @@ export interface ScreenItem {
   bgStyle: string;
   customBg: string | null;
   layout: "default" | "inverted";
+}
+
+export interface DeviceConfig {
+  id: string;
+  name: string;
+  category: "phone" | "tablet" | "desktop";
+  frame: {
+    width: number;
+    height: number;
+    radius: number;
+    padding: number;
+  };
+  screen: {
+    safeTop: number;
+    safeBottom: number;
+    safeLeft: number;
+    safeRight: number;
+  };
+  extras?: "notch" | "camera" | "stand";
 }
