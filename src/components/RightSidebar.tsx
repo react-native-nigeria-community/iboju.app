@@ -11,11 +11,9 @@ export default function RightSidebar({
   onExportCurrent,
   onExportAll,
 }: RightSidebarProps): JSX.Element {
-  
   if (!sidebarsCollapsed) {
     return (
       <aside className="w-80 bg-[#0D1423] text-gray-100 border-l border-gray-800 h-full flex flex-col shadow-lg relative">
-
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
           <div className="flex items-center gap-2 text-xs font-semibold tracking-wide uppercase text-gray-400">
@@ -51,7 +49,7 @@ export default function RightSidebar({
         </div>
 
         {/* Scrollable children (Controls) */}
-        <div className="flex-1 overflow-y-auto px-4 py-4">{children}</div>
+        <div className="flex-1 overflow-y-auto px-4 py-4 pb-24">{children}</div>
 
         {/* Footer Pill */}
         <a
@@ -87,7 +85,9 @@ export default function RightSidebar({
           <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-900">
             <GearIcon />
           </span>
-          <span className="text-sm font-medium">{en.rightSidebar.settings}</span>
+          <span className="text-sm font-medium">
+            {en.rightSidebar.settings}
+          </span>
           <ArrowLeftIcon />
         </button>
       </div>
