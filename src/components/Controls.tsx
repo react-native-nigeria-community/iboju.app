@@ -1,7 +1,7 @@
-// src/components/Controls.tsx
 import React, { ChangeEvent, useState, useEffect } from "react";
 import { en } from "../i18n/en";
 import { ControlsProps } from "../global";
+import { PRESET_GRADIENTS } from "../constants";
 
 /* ------------------------------------------
    Collapsible Section Component (Figma-style)
@@ -143,14 +143,11 @@ export const Controls: React.FC<ControlsProps> = ({
             value={isGradientOrPreset ? bgStyle : "custom"}
             onChange={(e) => handlePresetSelect(e.target.value)}
           >
-            <option value="bg-white">{en.controls.white}</option>
-            <option value="bg-gradient-to-r from-purple-400 to-pink-500">
-              {en.controls.purplePink}
-            </option>
-            <option value="bg-gradient-to-r from-blue-400 to-green-400">
-              {en.controls.blueGreen}
-            </option>
-            <option value="bg-gray-800 text-white">{en.controls.dark}</option>
+            {PRESET_GRADIENTS.map((preset) => (
+              <option key={preset.value} value={preset.value}>
+                {preset.name}
+              </option>
+            ))}
             <option value="custom">{en.controls.custom}</option>
           </select>
         </div>
