@@ -75,6 +75,10 @@ export interface LeftSidebarProps {
   deleteScreen: (id: number) => void;
   sidebarsCollapsed: boolean;
   setSidebarsCollapsed: (collapsed: boolean) => void;
+  isMobile: boolean;
+  isOpen: boolean;
+  onOpen: () => void;
+  onClose: () => void;
 }
 
 export interface LeftSidebarPillProps {
@@ -95,6 +99,10 @@ export interface RightSidebarProps {
   setSidebarsCollapsed: (value: boolean) => void;
   onExportCurrent: () => void;
   onExportAll: () => void;
+  isMobile: boolean;
+  isOpen: boolean;
+  onOpen: () => void;
+  onClose: () => void;
 }
 
 export interface ScreenItem {

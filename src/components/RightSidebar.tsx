@@ -10,12 +10,91 @@ export default function RightSidebar({
   setSidebarsCollapsed,
   onExportCurrent,
   onExportAll,
+  isMobile,
+  isOpen,
+  onOpen,
+  onClose,
 }: RightSidebarProps): JSX.Element {
-  
+
+  // ===========================
+  // MOBILE VIEW
+  // ===========================
+  if (isMobile) {
+    return (
+      <>
+        {/* Overlay */}
+        {isOpen && (
+          <div className="fixed inset-0 bg-black/40 z-40" onClick={onClose} />
+        )}
+
+        {/* Bottom Sheet */}
+        <div
+          className={`
+            fixed bottom-0 left-0 w-full h-[70vh]
+            bg-[#0D1423] text-gray-100 z-50
+            rounded-t-2xl
+            transform transition-transform duration-300
+            ${isOpen ? "translate-y-0" : "translate-y-full"}
+          `}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
+            <div className="flex items-center gap-2 text-xs font-semibold tracking-wide uppercase text-gray-400">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-900">
+                <GearIcon />
+              </span>
+              <span>{en.rightSidebar.settings}</span>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded bg-gray-900 hover:bg-gray-800"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto px-4 py-4">
+            {children}
+
+            <div className="pt-4 space-y-2">
+              <button
+                onClick={onExportCurrent}
+                className="w-full bg-blue-600 py-2 rounded"
+              >
+                {en.rightSidebar.export}
+              </button>
+
+              <button
+                onClick={onExportAll}
+                className="w-full bg-green-600 py-2 rounded"
+              >
+                {en.rightSidebar.exportAll}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Floating Button */}
+        {!isOpen && (
+          <button
+            onClick={onOpen}
+            className="fixed bottom-6 right-6 z-50 bg-blue-600 text-white px-4 py-2 rounded-full shadow-lg"
+          >
+            ⚙ Settings
+          </button>
+        )}
+      </>
+    );
+  }
+
+  // ===========================
+  // DESKTOP VIEW
+  // ===========================
   if (!sidebarsCollapsed) {
     return (
       <aside className="w-80 bg-[#0D1423] text-gray-100 border-l border-gray-800 h-full flex flex-col shadow-lg relative">
-
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
           <div className="flex items-center gap-2 text-xs font-semibold tracking-wide uppercase text-gray-400">
@@ -87,7 +166,9 @@ export default function RightSidebar({
           <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-900">
             <GearIcon />
           </span>
-          <span className="text-sm font-medium">{en.rightSidebar.settings}</span>
+          <span className="text-sm font-medium">
+            {en.rightSidebar.settings}
+          </span>
           <ArrowLeftIcon />
         </button>
       </div>

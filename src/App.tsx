@@ -22,6 +22,9 @@ const App: React.FC = () => {
   const [screens, setScreens] = useState<ScreenItem[]>([NEW_SCREEN_TEMPLATE]);
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [sidebarsCollapsed, setSidebarsCollapsed] = useState<boolean>(false);
+  const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
+  const [isLeftOpen, setIsLeftOpen] = useState(false);
+  const [isRightOpen, setIsRightOpen] = useState(false);
 
   const exportRef = useRef<HTMLDivElement | null>(null);
   const previewRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -43,18 +46,27 @@ const App: React.FC = () => {
   );
 
   useEffect(() => {
-  const fetchCount = async () => {
-    try {
-      const res = await fetch("/api/get");
-      const data = await res.json();
-      setDownloadCount(data.count);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    const fetchCount = async () => {
+      try {
+        const res = await fetch("/api/get");
+        const data = await res.json();
+        setDownloadCount(data.count);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchCount();
+  }, []);
 
-  fetchCount();
-}, []);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
 
 const incrementDownload = async (amount = 1) => {
   try {
@@ -187,6 +199,12 @@ const handleExportAll = useCallback(async () => {
         },
       ];
       setActiveIndex(next.length - 1);
+      setTimeout(() => {
+        previewRefs.current[next.length - 1]?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 50);
       return next;
     });
   }, []);
@@ -252,7 +270,10 @@ const handleExportAll = useCallback(async () => {
   /* ===========================================================
      🚨 DEVICE BLOCKER
   ============================================================ */
-  if (!isAllowedDevice()) {
+
+  // Removed for andriod support
+
+  /*if (!isAllowedDevice()) {
     return (
       <div className="w-screen h-screen flex flex-col items-center justify-center bg-gray-900 text-white p-6 text-center">
         <h1 className="text-3xl font-bold mb-4">Unsupported Device</h1>
@@ -263,7 +284,7 @@ const handleExportAll = useCallback(async () => {
         </p>
       </div>
     );
-  }
+  }*/
 
   /* ===========================================================
      NORMAL UI
@@ -273,6 +294,17 @@ const handleExportAll = useCallback(async () => {
       {/* HEADER */}
       <header className="px-4 py-2 border-b border-gray-300 flex justify-between items-center">
         <h1 className="text-3xl font-bold text-blue-700 flex items-center gap-3">
+          {isMobile && (
+            <button
+              className="text-2xl"
+              onClick={() => {
+                setIsLeftOpen(true);
+                setIsRightOpen(false);
+              }}
+            >
+              ☰
+            </button>
+          )}
           Iboju
           <span className="px-2 py-0.5 text-xs rounded bg-blue-100 text-blue-700 font-semibold">
             v0.1
@@ -290,11 +322,7 @@ const handleExportAll = useCallback(async () => {
             rel="noopener noreferrer"
             className="text-gray-700 hover:text-black"
           >
-            <svg
-              className="w-6 h-6"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
               <path
                 fillRule="evenodd"
                 d="M12 .297a12 12 0 00-3.79 23.4c.6.11.82-.26.82-.58v-2.17c-3.34.73-4.04-1.61-4.04-1.61a3.18 3.18 0 00-1.34-1.76c-1.1-.75.08-.74.08-.74a2.52 2.52 0 011.84 1.24 2.56 2.56 0 003.44 1 2.56 2.56 0 01.76-1.61c-2.67-.3-5.47-1.34-5.47-5.95a4.66 4.66 0 011.24-3.23 4.32 4.32 0 01.12-3.19s1-.32 3.3 1.23a11.38 11.38 0 016 0c2.3-1.55 3.29-1.23 3.29-1.23a4.32 4.32 0 01.12 3.19 4.66 4.66 0 011.24 3.23c0 4.63-2.81 5.65-5.49 5.95a2.88 2.88 0 01.82 2.23v3.3c0 .32.21.69.82.58A12 12 0 0012 .297z"
@@ -315,23 +343,32 @@ const handleExportAll = useCallback(async () => {
           deleteScreen={deleteScreen}
           sidebarsCollapsed={sidebarsCollapsed}
           setSidebarsCollapsed={setSidebarsCollapsed}
+          isMobile={isMobile}
+          isOpen={isLeftOpen}
+          onOpen={() => {
+            setIsLeftOpen(true);
+            setIsRightOpen(false);
+          }}
+          onClose={() => setIsLeftOpen(false)}
         />
 
-        <main className="flex-1 overflow-x-auto overflow-y-hidden whitespace-nowrap pt-10">
-          <div className="flex flex-row space-x-14 px-10">
+        <main className="flex-1 overflow-y-auto md:overflow-x-auto md:overflow-y-hidden pt-10">
+          <div
+            className="flex flex-col items-center gap-10
+            md:flex-row md:space-x-14 md:px-10"
+          >
             {screens.map((screen, idx) => (
               <div
                 key={screen.id}
                 ref={(el) => {
                   previewRefs.current[idx] = el;
                 }}
-                className={`transition-transform duration-300 inline-block align-top ${idx === activeIndex
-                  ? "scale-100"
-                  : "scale-95 opacity-50"
-                  }`}
+                className={`transition-transform duration-300 inline-block align-top ${
+                  idx === activeIndex ? "scale-100" : "scale-[0.97] opacity-40"
+                }`}
                 onClick={() => setActiveIndex(idx)}
               >
-                <div className="w-[350px] h-[700px] relative mt-20">
+                <div className="w-full max-w-[350px] h-[700px] relative mt-10 md:mt-20">
                   <Preview
                     title={screen.title}
                     setTitle={(val: string | null) => {
@@ -379,6 +416,13 @@ const handleExportAll = useCallback(async () => {
           setSidebarsCollapsed={setSidebarsCollapsed}
           onExportCurrent={handleExport}
           onExportAll={handleExportAll}
+          isMobile={isMobile}
+          isOpen={isRightOpen}
+          onOpen={() => {
+            setIsRightOpen(true);
+            setIsLeftOpen(false);
+          }}
+          onClose={() => setIsRightOpen(false)}
         >
           {activeScreen && (
             <Controls
