@@ -44,8 +44,9 @@ const App: React.FC = () => {
 
   useEffect(() => {
   const fetchCount = async () => {
+    const API_URL = "https://api.myqrmenu.co/iboju/download";
     try {
-      const res = await fetch("/api/get");
+      const res = await fetch(API_URL);
       const data = await res.json();
       setDownloadCount(data.count);
     } catch (err) {
@@ -56,19 +57,17 @@ const App: React.FC = () => {
   fetchCount();
 }, []);
 
-const incrementDownload = async (amount = 1) => {
+const incrementDownload = async () => {
+  const API_URL = "https://api.myqrmenu.co/iboju/download";
   try {
-    const res = await fetch("/api/set", { 
+    const res = await fetch(API_URL, { 
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount })
     });
 
     const data = await res.json();
     setDownloadCount(data.count);
   } catch {
     console.log("Failed to increment, applying fallback.");
-    setDownloadCount((prev) => prev + amount);
   }
 };
 
@@ -93,11 +92,6 @@ const incrementDownload = async (amount = 1) => {
 const handleExport = useCallback(async () => {
   if (!exportRef.current) return;
 
-  setDownloadCount((prev) => prev + 1);
-
-  // Save to Redis
-  incrementDownload(1);
-
   const exportNode = exportRef.current.cloneNode(true) as HTMLElement;
   exportNode.style.width = "1290px";
   exportNode.style.height = "2796px";
@@ -115,6 +109,8 @@ const handleExport = useCallback(async () => {
     link.download = "preview.png";
     link.href = dataUrl;
     link.click();
+
+    incrementDownload();
   } catch (err) {
     console.error("Export failed:", err);
   } finally {
@@ -128,14 +124,6 @@ const handleExport = useCallback(async () => {
   ---------------------------------- */
 const handleExportAll = useCallback(async () => {
   if (screens.length === 0) return;
-
-  const countToAdd = screens.length;
-
-  // UI update
-  setDownloadCount((prev) => prev + countToAdd);
-
-  // Save to Redis
-  incrementDownload(countToAdd);
 
   const originalIndex = activeIndex;
   const zip = new JSZip();
@@ -160,6 +148,8 @@ const handleExportAll = useCallback(async () => {
       const dataUrl = await toPng(exportNode, { width: 1290, height: 2796 });
       const base64 = dataUrl.split(",")[1];
       zip.file(`screen-${i + 1}.png`, base64, { base64: true });
+
+      incrementDownload();
     } catch (err) {
       console.error("Exporting screen failed:", err);
     } finally {
