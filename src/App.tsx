@@ -6,27 +6,56 @@ import React, {
   useEffect,
   ChangeEvent,
 } from "react";
-import { toPng } from "html-to-image";
+import { toBlob } from "html-to-image";
 import { Controls } from "./components/Controls";
 import { Preview } from "./components/Preview";
 import { ExportPreview } from "./components/ExportPreview";
 import LeftSidebar from "./components/LeftSidebar/LeftSidebar";
 import RightSidebar from "./components/RightSidebar";
 import JSZip from "jszip";
-import { saveAs } from "file-saver";
 import { ScreenItem } from "./global";
 import { isAllowedDevice } from "./utils";
 import { NEW_SCREEN_TEMPLATE } from "./constants";
 
+function useSemiPersistentState<T>(
+  key: string,
+  initialValue: T,
+): [T, React.Dispatch<React.SetStateAction<T>>] {
+  const [value, setValue] = useState<T>(() => {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      console.error("LocalStorage error:", error);
+      return initialValue;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem(key, JSON.stringify(value));
+  }, [key, value]);
+
+  return [value, setValue];
+}
+
 const App: React.FC = () => {
-  const [screens, setScreens] = useState<ScreenItem[]>([NEW_SCREEN_TEMPLATE]);
-  const [activeIndex, setActiveIndex] = useState<number>(0);
+  const [screens, setScreens] = useSemiPersistentState<ScreenItem[]>(
+    "iboju-screens",
+    [NEW_SCREEN_TEMPLATE],
+  );
+  const [activeIndex, setActiveIndex] = useSemiPersistentState<number>(
+    "iboju-activeIndex",
+    0,
+  );
+  const uploadImageRef = useRef<HTMLInputElement | null>(null);
+
   const [sidebarsCollapsed, setSidebarsCollapsed] = useState<boolean>(false);
 
   const exportRef = useRef<HTMLDivElement | null>(null);
   const previewRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const [downloadCount, setDownloadCount] = useState<number>(1);
+  const [isExporting, setIsExporting] = useState<boolean>(false);
 
   const activeScreen = screens[activeIndex];
 
@@ -43,35 +72,34 @@ const App: React.FC = () => {
   );
 
   useEffect(() => {
-  const fetchCount = async () => {
+    const fetchCount = async () => {
+      try {
+        const res = await fetch("/api/get");
+        const data = await res.json();
+        setDownloadCount(data.count);
+      } catch (err) {
+      console.error(err);
+      }
+    };
+
+    fetchCount();
+  }, []);
+
+  const incrementDownload = async (amount = 1) => {
     try {
-      const res = await fetch("/api/get");
+      const res = await fetch("/api/set", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount })
+      });
+
       const data = await res.json();
       setDownloadCount(data.count);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      console.log("Failed to increment, applying fallback.");
+      setDownloadCount((prev) => prev + amount);
     }
   };
-
-  fetchCount();
-}, []);
-
-const incrementDownload = async (amount = 1) => {
-  try {
-    const res = await fetch("/api/set", { 
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount })
-    });
-
-    const data = await res.json();
-    setDownloadCount(data.count);
-  } catch {
-    console.log("Failed to increment, applying fallback.");
-    setDownloadCount((prev) => prev + amount);
-  }
-};
-
 
   /* -------------------------
        IMAGE UPLOAD
@@ -87,94 +115,170 @@ const incrementDownload = async (amount = 1) => {
     [updateActiveScreen]
   );
 
+  const resizeImageToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const MAX_DIMENSION = 2000; // under the 5MB localStorage limit
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_DIMENSION) {
+              height *= MAX_DIMENSION / width;
+              width = MAX_DIMENSION;
+            }
+          } else {
+            if (height > MAX_DIMENSION) {
+              width *= MAX_DIMENSION / height;
+              height = MAX_DIMENSION;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // WebP at 0.7-0.8 
+          resolve(canvas.toDataURL("image/webp", 0.75));
+        };
+      };
+    });
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith("image/")) {
+      const base64 = await resizeImageToBase64(file); // Reuse your existing downscaler
+
+      updateActiveScreen({
+        customBgImage: base64,
+        customBgImageName: file.name,
+        presetValue: "customImage",
+      });
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault(); // This is required for the drop to work
+  };
+
   /* ---------------------------------
       EXPORT SINGLE SCREEN
   ---------------------------------- */
-const handleExport = useCallback(async () => {
-  if (!exportRef.current) return;
+  const handleExport = useCallback(async () => {
+    if (!exportRef.current || isExporting) return;
 
-  setDownloadCount((prev) => prev + 1);
+    setIsExporting(true);
 
-  // Save to Redis
-  incrementDownload(1);
+    exportRef.current.style.visibility = "visible";
 
-  const exportNode = exportRef.current.cloneNode(true) as HTMLElement;
-  exportNode.style.width = "1290px";
-  exportNode.style.height = "2796px";
+    try {
+      const blob = await toBlob(exportRef.current, {
+        width: exportRef.current.offsetWidth,
+        height: exportRef.current.offsetHeight,
+        pixelRatio: 3,
+        style: {
+          opacity: "100"
+        }
+      });
 
-  const container = document.createElement("div");
-  container.style.position = "absolute";
-  container.style.left = "-9999px";
-  container.appendChild(exportNode);
-  document.body.appendChild(container);
+      if (!blob) throw new Error("Blob generation failed");
 
-  try {
-    const dataUrl = await toPng(exportNode, { width: 1290, height: 2796 });
+      const dataUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.download = "preview.png";
+      link.href = dataUrl;
 
-    const link = document.createElement("a");
-    link.download = "preview.png";
-    link.href = dataUrl;
-    link.click();
-  } catch (err) {
-    console.error("Export failed:", err);
-  } finally {
-    document.body.removeChild(container);
-  }
-}, []);
+      document.body.appendChild(link);
+      link.click();
 
+      // Cleanup link and URL
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(dataUrl);
+
+      // Save to Redis
+      await incrementDownload(1);
+    } catch (err) {
+      console.error("Export failed:", err);
+    } finally {
+      if (exportRef.current) {
+        exportRef.current.style.visibility = "hidden";
+      }
+      setIsExporting(false);
+    }
+  }, [incrementDownload]);
 
   /* ---------------------------------
       EXPORT ALL SCREENS (ZIP)
   ---------------------------------- */
-const handleExportAll = useCallback(async () => {
-  if (screens.length === 0) return;
+  const handleExportAll = useCallback(async () => {
+    if (screens.length === 0 || isExporting) return;
 
-  const countToAdd = screens.length;
-
-  // UI update
-  setDownloadCount((prev) => prev + countToAdd);
-
-  // Save to Redis
-  incrementDownload(countToAdd);
-
-  const originalIndex = activeIndex;
-  const zip = new JSZip();
-
-  for (let i = 0; i < screens.length; i++) {
-    setActiveIndex(i);
-    await new Promise((resolve) => setTimeout(resolve, 160));
-
-    if (!exportRef.current) continue;
-
-    const exportNode = exportRef.current.cloneNode(true) as HTMLElement;
-    exportNode.style.width = "1290px";
-    exportNode.style.height = "2796px";
-
-    const container = document.createElement("div");
-    container.style.position = "absolute";
-    container.style.left = "-9999px";
-    container.appendChild(exportNode);
-    document.body.appendChild(container);
+    setIsExporting(true);
+    const zip = new JSZip();
+    const originalIndex = activeIndex;
 
     try {
-      const dataUrl = await toPng(exportNode, { width: 1290, height: 2796 });
-      const base64 = dataUrl.split(",")[1];
-      zip.file(`screen-${i + 1}.png`, base64, { base64: true });
+      for (let i = 0; i < screens.length; i++) {
+        setActiveIndex(i);
+
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
+        if (!exportRef.current) continue;
+
+        exportRef.current.style.visibility = "visible";
+
+        try {
+          const blob = await toBlob(exportRef.current, {
+            width: exportRef.current.offsetWidth,
+            height: exportRef.current.offsetHeight,
+            pixelRatio: 3,
+          });
+
+          if (blob) {
+            zip.file(`${screens[i].title}-${i + 1}.png`, blob);
+          }
+        } catch (err) {
+          console.error(`Failed to export screen ${i}:`, err);
+        } finally {
+          if (exportRef.current) {
+            exportRef.current.style.visibility = "hidden";
+          }
+        }
+      }
+
+      const zipContent = await zip.generateAsync({ type: "blob" });
+      const zipUrl = window.URL.createObjectURL(zipContent);
+
+      const link = document.createElement("a");
+      link.href = zipUrl;
+      link.download = "iboju-all-screens.zip";
+      link.click();
+
+      window.URL.revokeObjectURL(zipUrl);
+
+      // Save to Redis
+      await incrementDownload(screens.length);
     } catch (err) {
-      console.error("Exporting screen failed:", err);
+      console.error("ZIP generation failed:", err);
     } finally {
-      document.body.removeChild(container);
+      setActiveIndex(originalIndex);
+      setIsExporting(false);
     }
-  }
-
-  setActiveIndex(originalIndex);
-
-  const zipFile = await zip.generateAsync({ type: "blob" });
-  saveAs(zipFile, "screens.zip");
-}, [activeIndex, screens.length]);
-
-
-  /* -------------------------
+  }, [
+    screens,
+    activeIndex,
+    incrementDownload,
+    isExporting,
+  ]); /* -------------------------
       ADD SCREEN
   -------------------------- */
   const addNewScreen = useCallback(() => {
@@ -189,6 +293,9 @@ const handleExportAll = useCallback(async () => {
       setActiveIndex(next.length - 1);
       return next;
     });
+    
+    if (!uploadImageRef.current) return;
+    uploadImageRef.current.value = "";
   }, []);
 
   /* -------------------------
@@ -238,7 +345,7 @@ const handleExportAll = useCallback(async () => {
         return next;
       });
     },
-    [activeIndex]
+    [activeIndex],
   );
 
   /* -------------------------
@@ -281,7 +388,9 @@ const handleExportAll = useCallback(async () => {
 
         <div className="flex items-center gap-4">
           <span className="text-gray-600 text-sm bg-gray-200 px-3 py-1 rounded-full">
-            {downloadCount.toLocaleString()} downloads
+            {!isExporting
+              ? `${downloadCount.toLocaleString()} downloads`
+              : "Downloading..."}
           </span>
 
           <a
@@ -290,11 +399,7 @@ const handleExportAll = useCallback(async () => {
             rel="noopener noreferrer"
             className="text-gray-700 hover:text-black"
           >
-            <svg
-              className="w-6 h-6"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
               <path
                 fillRule="evenodd"
                 d="M12 .297a12 12 0 00-3.79 23.4c.6.11.82-.26.82-.58v-2.17c-3.34.73-4.04-1.61-4.04-1.61a3.18 3.18 0 00-1.34-1.76c-1.1-.75.08-.74.08-.74a2.52 2.52 0 011.84 1.24 2.56 2.56 0 003.44 1 2.56 2.56 0 01.76-1.61c-2.67-.3-5.47-1.34-5.47-5.95a4.66 4.66 0 011.24-3.23 4.32 4.32 0 01.12-3.19s1-.32 3.3 1.23a11.38 11.38 0 016 0c2.3-1.55 3.29-1.23 3.29-1.23a4.32 4.32 0 01.12 3.19 4.66 4.66 0 011.24 3.23c0 4.63-2.81 5.65-5.49 5.95a2.88 2.88 0 01.82 2.23v3.3c0 .32.21.69.82.58A12 12 0 0012 .297z"
@@ -317,7 +422,11 @@ const handleExportAll = useCallback(async () => {
           setSidebarsCollapsed={setSidebarsCollapsed}
         />
 
-        <main className="flex-1 overflow-x-auto overflow-y-hidden whitespace-nowrap pt-10">
+        <main
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+          className="flex-1 overflow-x-auto overflow-y-hidden whitespace-nowrap pt-10"
+        >
           <div className="flex flex-row space-x-14 px-10">
             {screens.map((screen, idx) => (
               <div
@@ -325,11 +434,11 @@ const handleExportAll = useCallback(async () => {
                 ref={(el) => {
                   previewRefs.current[idx] = el;
                 }}
-                className={`transition-transform duration-300 inline-block align-top ${idx === activeIndex
-                  ? "scale-100"
-                  : "scale-95 opacity-50"
-                  }`}
+                className={`transition-transform duration-300 inline-block align-top ${
+                  idx === activeIndex ? "scale-100" : "scale-95 opacity-50"
+                }`}
                 onClick={() => setActiveIndex(idx)}
+                onDragOver={() => setActiveIndex(idx)}
               >
                 <div className="w-[350px] h-[700px] relative mt-20">
                   <Preview
@@ -349,12 +458,14 @@ const handleExportAll = useCallback(async () => {
                     textAlign={screen.textAlign}
                     bgStyle={screen.bgStyle}
                     customBg={screen.customBg}
+                    customBgImage={screen.customBgImage}
+                    customBgImageSize={screen.customBgImageSize}
+                    presetValue={screen.presetValue}
                     layout={screen.layout}
                     titleColor={screen.titleColor}
                     subtitleColor={screen.subtitleColor}
                   />
                 </div>
-
                 {idx === activeIndex && (
                   <ExportPreview
                     exportRef={exportRef}
@@ -364,6 +475,9 @@ const handleExportAll = useCallback(async () => {
                     textAlign={screen.textAlign}
                     bgStyle={screen.bgStyle}
                     customBg={screen.customBg}
+                    customBgImage={screen.customBgImage}
+                    customBgImageSize={screen.customBgImageSize}
+                    presetValue={screen.presetValue}
                     layout={screen.layout}
                     titleColor={screen.titleColor}
                     subtitleColor={screen.subtitleColor}
@@ -384,17 +498,41 @@ const handleExportAll = useCallback(async () => {
             <Controls
               bgStyle={activeScreen.bgStyle}
               customBg={activeScreen.customBg}
+              customBgImage={activeScreen.customBgImage}
+              customBgImageSize={activeScreen.customBgImageSize}
+              customBgImageName={activeScreen.customBgImageName}
+              customBgImageRef={uploadImageRef}
+              presetValue={activeScreen.presetValue}
               textAlign={activeScreen.textAlign}
               layout={activeScreen.layout}
               titleColor={activeScreen.titleColor}
               subtitleColor={activeScreen.subtitleColor}
               isTextColorCustom={activeScreen.isTextColorCustom}
               setBgStyle={(style: string) =>
-                updateActiveScreen({ bgStyle: style, customBg: null })
+                updateActiveScreen({
+                  bgStyle: style,
+                  presetValue: style,
+                })
               }
               setCustomBg={(color: string | null) =>
-                updateActiveScreen({ customBg: color, bgStyle: "" })
+                updateActiveScreen({
+                  customBg: color,
+                  presetValue: "customColor",
+                })
               }
+              setCustomBgImage={(image: string | null, name: string) =>
+                updateActiveScreen({
+                  customBgImage: image,
+                  customBgImageName: name,
+                  presetValue: "customImage",
+                })
+              }
+              setCustomBgImageSize={(size: string) =>
+                updateActiveScreen({ customBgImageSize: size })
+              }
+              setPresetValue={(value: string) => {
+                updateActiveScreen({ presetValue: value });
+              }}
               setTextAlign={(align: "left" | "center" | "right") =>
                 updateActiveScreen({ textAlign: align })
               }
@@ -416,6 +554,7 @@ const handleExportAll = useCallback(async () => {
               setIsTextColorCustom={(isCustom: boolean) =>
                 updateActiveScreen({ isTextColorCustom: isCustom })
               }
+              resizeImageToBase64={resizeImageToBase64}
               onPresetChange={handlePresetChange}
               handleImageUpload={handleImageUpload}
             />

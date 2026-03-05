@@ -10,6 +10,9 @@ export interface PreviewProps {
   textAlign: "left" | "center" | "right";
   bgStyle: string;
   customBg: string | null;
+  customBgImage: string | null;
+  customBgImageSize: string;
+  presetValue: string;
   layout: "default" | "inverted";
   titleColor: string;
   subtitleColor: string;
@@ -24,6 +27,9 @@ export const Preview: React.FC<PreviewProps> = ({
   textAlign,
   bgStyle,
   customBg,
+  customBgImage,
+  customBgImageSize,
+  presetValue,
   layout,
   titleColor,
   subtitleColor,
@@ -32,6 +38,11 @@ export const Preview: React.FC<PreviewProps> = ({
 
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const subtitleRef = useRef<HTMLParagraphElement | null>(null);
+
+  const isCustomImage = presetValue === "customImage";
+  const isCustomColor = presetValue === "customColor";
+
+  const backgroundSource = customBgImage || "placeholder.jpg";
 
   useEffect(() => {
     if (titleRef.current && titleRef.current.textContent !== title) {
@@ -58,12 +69,14 @@ export const Preview: React.FC<PreviewProps> = ({
   return (
     <div className="flex-1">
       <div
-        className={`relative w-full max-w-md mx-auto p-6 rounded-xl shadow-xl flex flex-col ${
-          customBg ? "" : bgStyle
-        } h-[700px] overflow-hidden`}
+        className={`relative w-full max-w-md mx-auto p-6 rounded-xl shadow-xl flex flex-col ${!isCustomImage && !isCustomColor ? bgStyle : ""} h-[700px] overflow-hidden`}
         style={{
           textAlign,
-          background: customBg || undefined,
+          backgroundImage: isCustomImage
+            ? `url(${backgroundSource})`
+            : undefined,
+          backgroundColor: isCustomColor ? customBg || undefined : undefined,
+          backgroundSize: customBgImageSize,
         }}
       >
         {/* TITLE + SUBTITLE (default layout) */}

@@ -13,6 +13,11 @@ interface ColorPickerProps {
 export interface ControlsProps {
   bgStyle: string;
   customBg: string | null;
+  customBgImage: string | null;
+  customBgImageSize: string;
+  customBgImageName: string;
+  customBgImageRef: React.RefObject<HTMLInputElement | null>;
+  presetValue: string;
   textAlign: "left" | "center" | "right";
   layout: "default" | "inverted";
 
@@ -22,6 +27,9 @@ export interface ControlsProps {
 
   setBgStyle: (value: string) => void;
   setCustomBg: (value: string | null) => void;
+  setCustomBgImage: (file: string | null, name: string) => void;
+  setCustomBgImageSize: (value: string) => void;
+  setPresetValue: (value: string) => void;
   setTextAlign: (value: "left" | "center" | "right") => void;
   setLayout: (value: "default" | "inverted") => void;
 
@@ -30,6 +38,7 @@ export interface ControlsProps {
   setIsTextColorCustom: (value: boolean) => void;
 
   handleImageUpload: (e: ChangeEvent<HTMLInputElement>) => void;
+  resizeImageToBase64: (file: File) => Promise<string>;
 
   // NEW: notify parent when a preset is chosen so it can auto-adjust colors
   onPresetChange?: (preset: string) => void;
@@ -43,6 +52,10 @@ export interface ScreenItem {
   textAlign: "left" | "center" | "right";
   bgStyle: string;
   customBg: string | null;
+  customBgImage: string | null;
+  customBgImageSize: string;
+  customBgImageName: string;
+  presetValue: string;
   layout: "default" | "inverted"; 
   titleColor: string;
   subtitleColor: string;
@@ -57,9 +70,12 @@ export interface ExportPreviewProps {
   textAlign: "left" | "center" | "right";
   bgStyle: string;
   customBg: string | null;
+  customBgImage: string | null;
+  customBgImageSize: string;
+  presetValue: string;
   layout: "default" | "inverted";
   titleColor: string;
- subtitleColor: string;
+  subtitleColor: string;
 }
 
 export interface ScreenItemLeftBar {
@@ -95,15 +111,4 @@ export interface RightSidebarProps {
   setSidebarsCollapsed: (value: boolean) => void;
   onExportCurrent: () => void;
   onExportAll: () => void;
-}
-
-export interface ScreenItem {
-  id: number;
-  screenshot: string | null;
-  title: string;
-  subtitle: string;
-  textAlign: "left" | "center" | "right";
-  bgStyle: string;
-  customBg: string | null;
-  layout: "default" | "inverted";
 }

@@ -63,6 +63,11 @@ const SidebarSection: React.FC<SectionProps> = ({
 export const Controls: React.FC<ControlsProps> = ({
   bgStyle,
   customBg,
+  customBgImage,
+  customBgImageSize,
+  customBgImageName,
+  customBgImageRef,
+  presetValue,
   textAlign,
   layout,
   titleColor,
@@ -70,16 +75,38 @@ export const Controls: React.FC<ControlsProps> = ({
   isTextColorCustom,
   setBgStyle,
   setCustomBg,
+  setCustomBgImage,
+  setCustomBgImageSize,
+  setPresetValue,
   setTextAlign,
   setLayout,
   setTitleColor,
   setSubtitleColor,
   setIsTextColorCustom,
   handleImageUpload,
+  resizeImageToBase64,
   onPresetChange,
 }) => {
-  const handleCustomColorChange = (e: ChangeEvent<HTMLInputElement>) =>
+  const handleCustomColorChange = (e: ChangeEvent<HTMLInputElement>) => {
     setCustomBg(e.target.value);
+    setPresetValue("customColor");
+  };
+
+  const handleCustomBgImageChange = async (
+    e: ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      try {
+        const base64Image = await resizeImageToBase64(file);
+
+        setCustomBgImage(base64Image, file.name);
+        setPresetValue("customImage");
+      } catch (err) {
+        console.error("Failed to process background:", err);
+      }
+    }
+  };
 
   const handleCustomColorTextChange = (e: ChangeEvent<HTMLInputElement>) =>
     setCustomBg(e.target.value);
@@ -91,10 +118,23 @@ export const Controls: React.FC<ControlsProps> = ({
       bgStyle.includes("bg-white"));
 
   const handlePresetSelect = (value: string) => {
-    if (value === "custom") return;
-    setCustomBg(null);
-    setBgStyle(value);
     onPresetChange?.(value);
+
+    if (value === "customImage") {
+      if (!customBgImage) {
+        setCustomBgImage("placeholder.jpg", "placeholder.jpg");
+      } else {
+        setPresetValue("customImage");
+      }
+      return;
+    }
+
+    if (value === "customColor") {
+      setCustomBg("#ffffff");
+      return;
+    }
+
+    setBgStyle(value);
   };
 
   const handleResetTextColors = () => {
@@ -113,7 +153,7 @@ export const Controls: React.FC<ControlsProps> = ({
           SECTION: Screenshot
       ============================== */}
       <SidebarSection id="screenshot" title={en.controls.screenshot}>
-        <label className="block text-[11px] text-gray-400">
+        <label className="   text-[11px] text-gray-400">
           {en.controls.uploadScreenshot}
         </label>
 
@@ -140,7 +180,7 @@ export const Controls: React.FC<ControlsProps> = ({
           <select
             className="w-full bg-[#111827] border border-gray-700 rounded-md px-2 py-1.5 text-xs text-gray-100 
             focus:outline-none focus:ring-1 focus:ring-blue-500"
-            value={isGradientOrPreset ? bgStyle : "custom"}
+            value={presetValue}
             onChange={(e) => handlePresetSelect(e.target.value)}
           >
             {PRESET_GRADIENTS.map((preset) => (
@@ -148,11 +188,13 @@ export const Controls: React.FC<ControlsProps> = ({
                 {preset.name}
               </option>
             ))}
-            <option value="custom">{en.controls.custom}</option>
+            <option value="bg-gray-800 text-white">{en.controls.dark}</option>
+            <option value="customColor">{en.controls.customColor}</option>
+            <option value="customImage">{en.controls.customImage}</option>
           </select>
         </div>
 
-        {/* Custom background */}
+        {/* Custom background color*/}
         <div>
           <label className="block text-[11px] text-gray-400">
             {en.controls.customColor}
@@ -174,6 +216,48 @@ export const Controls: React.FC<ControlsProps> = ({
               className="flex-1 bg-[#111827] border border-gray-700 rounded-md px-2 py-1.5 
               text-xs text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             />
+          </div>
+        </div>
+
+        {/* Custom background image*/}
+        <div className="flex gap-2">
+          <div className="flex-3">
+            <label className="block text-[11px] text-gray-400">
+              {en.controls.uploadBgImage}
+            </label>
+
+            <div className="relative">
+              <input
+                ref={customBgImageRef}
+                type="file"
+                accept="image/*"
+                onChange={handleCustomBgImageChange}
+                className="block w-full h-8.5 text-xs text-transparent bg-[#111827] border border-gray-700 rounded-md px-1 py-1 
+              file:mr-3 file:px-3 file:py-1 file:rounded file:border-0 
+              file:text-xs file:bg-blue-600 file:text-white hover:file:bg-blue-500"
+              />
+              <div className="absolute flex items-center px-2 left-25 top-0 w-[48%] h-8.5 text-xs text-gray-100 rounded-md">
+                <p className="truncate leading-[12px]">
+                  {customBgImageName || "No file selected"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className={`${customBgImage ? "block" : "hidden"}`}>
+            <label className="block text-[11px] text-gray-400">
+              {en.controls.uploadBgImageSize}
+            </label>
+            <select
+              className="w-full h-8.5 bg-[#111827] border border-gray-700 rounded-md px-2 py-1.5 text-xs text-gray-100 
+            focus:outline-none focus:ring-1 focus:ring-blue-500"
+              value={customBgImageSize}
+              onChange={(e) => setCustomBgImageSize(e.target.value)}
+            >
+              <option value="cover">Cover</option>
+              <option value="contain">Contain</option>
+              <option value="auto">Auto</option>
+            </select>
           </div>
         </div>
       </SidebarSection>

@@ -51,7 +51,7 @@ export default function RightSidebar({
         </div>
 
         {/* Scrollable children (Controls) */}
-        <div className="flex-1 overflow-y-auto px-4 py-4">{children}</div>
+        <div className="flex-1 overflow-y-auto px-4 py-4 pb-16">{children}</div>
 
         {/* Footer Pill */}
         <a

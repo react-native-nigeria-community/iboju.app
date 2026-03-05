@@ -1,80 +1,83 @@
 export const en = {
-    colorPicker: {
-        backgroundStyleLabel: "Background Style",
-        chooseGradientPlaceholder: "-- Choose a Gradient --",
-        customColor: "Custom Color",
-        pickColorAria: "Pick background color",
-        chooseGradientAria: "Choose background gradient",
-        solidColorLabel: "Solid color",
-    },
+  colorPicker: {
+    backgroundStyleLabel: "Background Style",
+    chooseGradientPlaceholder: "-- Choose a Gradient --",
+    customColor: "Custom Color",
+    pickColorAria: "Pick background color",
+    chooseGradientAria: "Choose background gradient",
+    solidColorLabel: "Solid color",
+  },
 
-    controls: {
-        screenshot: "Screenshot",
-        uploadScreenshot: "Upload screenshot",
+  controls: {
+    screenshot: "Screenshot",
+    uploadScreenshot: "Upload screenshot",
+    uploadBgImage: "Custom image",
+    uploadBgImageSize: "Fit",
 
-        background: "Background",
-        presetStyle: "Preset style",
-        customColor: "Custom color",
+    background: "Background",
+    presetStyle: "Preset style",
+    customColor: "Custom color",
 
-        white: "White",
-        purplePink: "Purple → Pink",
-        blueGreen: "Blue → Green",
-        dark: "Dark",
-        custom: "Custom color",
-        customPlaceholder: "#FF9900 or rgb(0,0,0)",
+    white: "White",
+    purplePink: "Purple → Pink",
+    blueGreen: "Blue → Green",
+    dark: "Dark",
+    customImage: "Custom image",
+    customPlaceholder: "#FF9900 or rgb(0,0,0)",
 
-        layoutText: "Layout & Text",
-        layout: "Layout",
-        default: "Default",
-        inverted: "Inverted",
+    layoutText: "Layout & Text",
+    layout: "Layout",
+    default: "Default",
+    inverted: "Inverted",
 
-        textAlignment: "Text alignment",
-        left: "left",
-        center: "center",
-        right: "right",
+    textAlignment: "Text alignment",
+    left: "left",
+    center: "center",
+    right: "right",
 
-        textColorSection: "Text color",
-        titleColor: "Title color",
-        subtitleColor: "Subtitle color",
-        resetTextColor: "Reset to default",
-    },
+    textColorSection: "Text color",
+    titleColor: "Title color",
+    subtitleColor: "Subtitle color",
+    resetTextColor: "Reset to default",
+  },
 
-    exportPreview: {
-        altScreenshot: "App Screenshot",
-        noScreenshot: "No screenshot",
-    },
+  exportPreview: {
+    altScreenshot: "App Screenshot",
+    noScreenshot: "No screenshot",
+  },
 
-    leftSidebar: {
-        screens: "Screens",
-        searchPlaceholder: "Search screens...",
-        screen: "Screen",
-    },
+  leftSidebar: {
+    screens: "Screens",
+    searchPlaceholder: "Search screens...",
+    screen: "Screen",
+  },
 
-    preview: {
-        altScreenshot: "Phone screenshot",
-        noScreenshot: "No screenshot",
-    },
+  preview: {
+    altScreenshot: "Phone screenshot",
+    noScreenshot: "No screenshot",
+  },
 
-    rightSidebar: {
-        settings: "Settings",
-        export: "Export",
-        exportAll: "Export All",
-        collapse: "Collapse",
-        builtWith: "Built with",
-        love: "❤️",
-        community: "React Native Nigeria",
-    },
+  rightSidebar: {
+    settings: "Settings",
+    export: "Export",
+    exportAll: "Export All",
+    collapse: "Collapse",
+    builtWith: "Built with",
+    love: "❤️",
+    community: "React Native Nigeria",
+  },
 
-    app: {
-        title: "Iboju",
-        version: "v0.1",
-        unsupportedDeviceTitle: "Unsupported Device",
-        unsupportedDeviceDescription: "Iboju is only available on iPad and Desktop browsers.",
-        switchMessage: "Please switch to a larger device to continue.",
-        downloadLabel: "downloads",
-        defaultScreenTitle: "Your App Title",
-        defaultScreenSubtitle: "Your subtitle here",
-        newScreenTitle: "New Screen",
-        newScreenSubtitle: "Edit subtitle"
-    }
+  app: {
+    title: "Iboju",
+    version: "v0.1",
+    unsupportedDeviceTitle: "Unsupported Device",
+    unsupportedDeviceDescription:
+      "Iboju is only available on iPad and Desktop browsers.",
+    switchMessage: "Please switch to a larger device to continue.",
+    downloadLabel: "downloads",
+    defaultScreenTitle: "Your App Title",
+    defaultScreenSubtitle: "Your subtitle here",
+    newScreenTitle: "New Screen",
+    newScreenSubtitle: "Edit subtitle",
+  },
 };
