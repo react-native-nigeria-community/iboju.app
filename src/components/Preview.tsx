@@ -13,6 +13,7 @@ export interface PreviewProps {
   layout: "default" | "inverted";
   titleColor: string;
   subtitleColor: string;
+  deviceStyle: "flat" | "3d";
 }
 
 export const Preview: React.FC<PreviewProps> = ({
@@ -27,8 +28,10 @@ export const Preview: React.FC<PreviewProps> = ({
   layout,
   titleColor,
   subtitleColor,
+  deviceStyle,
 }) => {
   const isInverted = layout === "inverted";
+  const is3D = deviceStyle === "3d";
 
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const subtitleRef = useRef<HTMLParagraphElement | null>(null);
@@ -93,10 +96,16 @@ export const Preview: React.FC<PreviewProps> = ({
 
         {/* PHONE MOCKUP */}
         <div className="flex justify-center items-center flex-1">
-          <div className="bg-black rounded-[32px] p-2 border-4 border-black shadow-md">
-            <div className="w-[220px] h-[440px] bg-white rounded-[24px] overflow-hidden relative flex items-center justify-center">
-              {/* notch */}
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-3 bg-black rounded-b-xl z-10" />
+          <div
+            className={`${is3D ? "bg-black rounded-[32px] p-2 border-4 border-black shadow-md" : ""}`}
+          >
+            <div
+              className={`w-[220px] h-[440px] bg-white ${is3D ? "rounded-[24px]" : "rounded-lg border-2 border-gray-300 shadow-lg"} overflow-hidden relative flex items-center justify-center`}
+            >
+              {/* notch - only show in 3D mode */}
+              {is3D && (
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-3 bg-black rounded-b-xl z-10" />
+              )}
 
               {screenshot ? (
                 <img

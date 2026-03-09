@@ -65,6 +65,7 @@ export const Controls: React.FC<ControlsProps> = ({
   customBg,
   textAlign,
   layout,
+  deviceStyle,
   titleColor,
   subtitleColor,
   isTextColorCustom,
@@ -72,6 +73,7 @@ export const Controls: React.FC<ControlsProps> = ({
   setCustomBg,
   setTextAlign,
   setLayout,
+  setDeviceStyle,
   setTitleColor,
   setSubtitleColor,
   setIsTextColorCustom,
@@ -232,6 +234,29 @@ export const Controls: React.FC<ControlsProps> = ({
           SECTION: Layout + Alignment
       ============================== */}
       <SidebarSection id="layout" title={en.controls.layoutText}>
+        {/* Device Style */}
+        <div>
+          <label className="block text-[11px] text-gray-400 mb-1">
+            Device Style
+          </label>
+
+          <div className="inline-flex rounded-md bg-[#111827] border border-gray-700 p-0.5">
+            {(["flat", "3d"] as const).map((type) => (
+              <button
+                key={type}
+                onClick={() => setDeviceStyle(type)}
+                className={`px-3 py-1 text-xs rounded uppercase ${
+                  deviceStyle === type
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-200 hover:bg-gray-800"
+                }`}
+              >
+                {type}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Layout */}
         <div>
           <label className="block text-[11px] text-gray-400">

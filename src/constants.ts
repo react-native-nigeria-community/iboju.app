@@ -26,7 +26,7 @@ export const PRESET_GRADIENTS: GradientOption[] = [
 ];
 
 export const NEW_SCREEN_TEMPLATE: ScreenItem = {
-  id: 0, 
+  id: 0,
   screenshot: null,
   title: en.app.newScreenTitle,
   subtitle: en.app.newScreenSubtitle,
@@ -34,7 +34,8 @@ export const NEW_SCREEN_TEMPLATE: ScreenItem = {
   bgStyle: "bg-white",
   customBg: null,
   layout: "default",
-  titleColor: "#111827",     
-  subtitleColor: "#4B5563",   
+  titleColor: "#111827",
+  subtitleColor: "#4B5563",
   isTextColorCustom: false,
+  deviceStyle: "3d",
 };
