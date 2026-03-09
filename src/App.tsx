@@ -39,39 +39,38 @@ const App: React.FC = () => {
         return updated;
       });
     },
-    [activeIndex]
+    [activeIndex],
   );
 
   useEffect(() => {
-  const fetchCount = async () => {
+    const fetchCount = async () => {
+      try {
+        const res = await fetch("/api/get");
+        const data = await res.json();
+        setDownloadCount(data.count);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchCount();
+  }, []);
+
+  const incrementDownload = async (amount = 1) => {
     try {
-      const res = await fetch("/api/get");
+      const res = await fetch("/api/set", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount }),
+      });
+
       const data = await res.json();
       setDownloadCount(data.count);
-    } catch (err) {
-      console.error(err);
+    } catch {
+      console.log("Failed to increment, applying fallback.");
+      setDownloadCount((prev) => prev + amount);
     }
   };
-
-  fetchCount();
-}, []);
-
-const incrementDownload = async (amount = 1) => {
-  try {
-    const res = await fetch("/api/set", { 
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount })
-    });
-
-    const data = await res.json();
-    setDownloadCount(data.count);
-  } catch {
-    console.log("Failed to increment, applying fallback.");
-    setDownloadCount((prev) => prev + amount);
-  }
-};
-
 
   /* -------------------------
        IMAGE UPLOAD
@@ -84,67 +83,19 @@ const incrementDownload = async (amount = 1) => {
         updateActiveScreen({ screenshot: imageUrl });
       }
     },
-    [updateActiveScreen]
+    [updateActiveScreen],
   );
 
   /* ---------------------------------
       EXPORT SINGLE SCREEN
   ---------------------------------- */
-const handleExport = useCallback(async () => {
-  if (!exportRef.current) return;
+  const handleExport = useCallback(async () => {
+    if (!exportRef.current) return;
 
-  setDownloadCount((prev) => prev + 1);
+    setDownloadCount((prev) => prev + 1);
 
-  // Save to Redis
-  incrementDownload(1);
-
-  const exportNode = exportRef.current.cloneNode(true) as HTMLElement;
-  exportNode.style.width = "1290px";
-  exportNode.style.height = "2796px";
-
-  const container = document.createElement("div");
-  container.style.position = "absolute";
-  container.style.left = "-9999px";
-  container.appendChild(exportNode);
-  document.body.appendChild(container);
-
-  try {
-    const dataUrl = await toPng(exportNode, { width: 1290, height: 2796 });
-
-    const link = document.createElement("a");
-    link.download = "preview.png";
-    link.href = dataUrl;
-    link.click();
-  } catch (err) {
-    console.error("Export failed:", err);
-  } finally {
-    document.body.removeChild(container);
-  }
-}, []);
-
-
-  /* ---------------------------------
-      EXPORT ALL SCREENS (ZIP)
-  ---------------------------------- */
-const handleExportAll = useCallback(async () => {
-  if (screens.length === 0) return;
-
-  const countToAdd = screens.length;
-
-  // UI update
-  setDownloadCount((prev) => prev + countToAdd);
-
-  // Save to Redis
-  incrementDownload(countToAdd);
-
-  const originalIndex = activeIndex;
-  const zip = new JSZip();
-
-  for (let i = 0; i < screens.length; i++) {
-    setActiveIndex(i);
-    await new Promise((resolve) => setTimeout(resolve, 160));
-
-    if (!exportRef.current) continue;
+    // Save to Redis
+    incrementDownload(1);
 
     const exportNode = exportRef.current.cloneNode(true) as HTMLElement;
     exportNode.style.width = "1290px";
@@ -158,21 +109,67 @@ const handleExportAll = useCallback(async () => {
 
     try {
       const dataUrl = await toPng(exportNode, { width: 1290, height: 2796 });
-      const base64 = dataUrl.split(",")[1];
-      zip.file(`screen-${i + 1}.png`, base64, { base64: true });
+
+      const link = document.createElement("a");
+      link.download = "preview.png";
+      link.href = dataUrl;
+      link.click();
     } catch (err) {
-      console.error("Exporting screen failed:", err);
+      console.error("Export failed:", err);
     } finally {
       document.body.removeChild(container);
     }
-  }
+  }, []);
 
-  setActiveIndex(originalIndex);
+  /* ---------------------------------
+      EXPORT ALL SCREENS (ZIP)
+  ---------------------------------- */
+  const handleExportAll = useCallback(async () => {
+    if (screens.length === 0) return;
 
-  const zipFile = await zip.generateAsync({ type: "blob" });
-  saveAs(zipFile, "screens.zip");
-}, [activeIndex, screens.length]);
+    const countToAdd = screens.length;
 
+    // UI update
+    setDownloadCount((prev) => prev + countToAdd);
+
+    // Save to Redis
+    incrementDownload(countToAdd);
+
+    const originalIndex = activeIndex;
+    const zip = new JSZip();
+
+    for (let i = 0; i < screens.length; i++) {
+      setActiveIndex(i);
+      await new Promise((resolve) => setTimeout(resolve, 160));
+
+      if (!exportRef.current) continue;
+
+      const exportNode = exportRef.current.cloneNode(true) as HTMLElement;
+      exportNode.style.width = "1290px";
+      exportNode.style.height = "2796px";
+
+      const container = document.createElement("div");
+      container.style.position = "absolute";
+      container.style.left = "-9999px";
+      container.appendChild(exportNode);
+      document.body.appendChild(container);
+
+      try {
+        const dataUrl = await toPng(exportNode, { width: 1290, height: 2796 });
+        const base64 = dataUrl.split(",")[1];
+        zip.file(`screen-${i + 1}.png`, base64, { base64: true });
+      } catch (err) {
+        console.error("Exporting screen failed:", err);
+      } finally {
+        document.body.removeChild(container);
+      }
+    }
+
+    setActiveIndex(originalIndex);
+
+    const zipFile = await zip.generateAsync({ type: "blob" });
+    saveAs(zipFile, "screens.zip");
+  }, [activeIndex, screens.length]);
 
   /* -------------------------
       ADD SCREEN
@@ -238,7 +235,7 @@ const handleExportAll = useCallback(async () => {
         return next;
       });
     },
-    [activeIndex]
+    [activeIndex],
   );
 
   /* -------------------------
@@ -290,11 +287,7 @@ const handleExportAll = useCallback(async () => {
             rel="noopener noreferrer"
             className="text-gray-700 hover:text-black"
           >
-            <svg
-              className="w-6 h-6"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
+            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
               <path
                 fillRule="evenodd"
                 d="M12 .297a12 12 0 00-3.79 23.4c.6.11.82-.26.82-.58v-2.17c-3.34.73-4.04-1.61-4.04-1.61a3.18 3.18 0 00-1.34-1.76c-1.1-.75.08-.74.08-.74a2.52 2.52 0 011.84 1.24 2.56 2.56 0 003.44 1 2.56 2.56 0 01.76-1.61c-2.67-.3-5.47-1.34-5.47-5.95a4.66 4.66 0 011.24-3.23 4.32 4.32 0 01.12-3.19s1-.32 3.3 1.23a11.38 11.38 0 016 0c2.3-1.55 3.29-1.23 3.29-1.23a4.32 4.32 0 01.12 3.19 4.66 4.66 0 011.24 3.23c0 4.63-2.81 5.65-5.49 5.95a2.88 2.88 0 01.82 2.23v3.3c0 .32.21.69.82.58A12 12 0 0012 .297z"
@@ -325,10 +318,9 @@ const handleExportAll = useCallback(async () => {
                 ref={(el) => {
                   previewRefs.current[idx] = el;
                 }}
-                className={`transition-transform duration-300 inline-block align-top ${idx === activeIndex
-                  ? "scale-100"
-                  : "scale-95 opacity-50"
-                  }`}
+                className={`transition-transform duration-300 inline-block align-top ${
+                  idx === activeIndex ? "scale-100" : "scale-95 opacity-50"
+                }`}
                 onClick={() => setActiveIndex(idx)}
               >
                 <div className="w-[350px] h-[700px] relative mt-20">
@@ -352,6 +344,7 @@ const handleExportAll = useCallback(async () => {
                     layout={screen.layout}
                     titleColor={screen.titleColor}
                     subtitleColor={screen.subtitleColor}
+                    deviceStyle={screen.deviceStyle}
                   />
                 </div>
 
@@ -367,6 +360,7 @@ const handleExportAll = useCallback(async () => {
                     layout={screen.layout}
                     titleColor={screen.titleColor}
                     subtitleColor={screen.subtitleColor}
+                    deviceStyle={screen.deviceStyle}
                   />
                 )}
               </div>
@@ -386,6 +380,7 @@ const handleExportAll = useCallback(async () => {
               customBg={activeScreen.customBg}
               textAlign={activeScreen.textAlign}
               layout={activeScreen.layout}
+              deviceStyle={activeScreen.deviceStyle}
               titleColor={activeScreen.titleColor}
               subtitleColor={activeScreen.subtitleColor}
               isTextColorCustom={activeScreen.isTextColorCustom}
@@ -400,6 +395,9 @@ const handleExportAll = useCallback(async () => {
               }
               setLayout={(layout: "default" | "inverted") =>
                 updateActiveScreen({ layout })
+              }
+              setDeviceStyle={(deviceStyle: "flat" | "3d") =>
+                updateActiveScreen({ deviceStyle })
               }
               setTitleColor={(color: string) =>
                 updateActiveScreen({
