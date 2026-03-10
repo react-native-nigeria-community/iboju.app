@@ -88,6 +88,7 @@ export const Controls: React.FC<ControlsProps> = ({
     bgStyle &&
     (bgStyle.includes("bg-gradient") ||
       bgStyle.includes("bg-gray") ||
+      bgStyle.includes("bg-blue-500") ||
       bgStyle.includes("bg-white"));
 
   const handlePresetSelect = (value: string) => {
@@ -148,7 +149,9 @@ export const Controls: React.FC<ControlsProps> = ({
                 {preset.name}
               </option>
             ))}
-            <option value="custom">{en.controls.custom}</option>
+            <option value="bg-gray-800 text-white">{en.controls.dark}</option>
+            <option value="customColor">{en.controls.customColor}</option>
+            <option value="customImage">{en.controls.customImage}</optio
           </select>
         </div>
 

@@ -17,6 +17,7 @@ export const en = {
         customColor: "Custom color",
 
         white: "White",
+        blue: "Blue",
         purplePink: "Purple → Pink",
         blueGreen: "Blue → Green",
         dark: "Dark",
