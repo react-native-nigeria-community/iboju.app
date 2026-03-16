@@ -56,11 +56,12 @@ export const Preview: React.FC<PreviewProps> = ({
   };
 
   return (
-    <div className="flex-1">
+    <div className="flex-1 flex justify-center">
       <div
         className={`relative w-full max-w-md mx-auto p-6 rounded-xl shadow-xl flex flex-col ${
           customBg ? "" : bgStyle
-        } h-[700px] overflow-hidden`}
+        } h-[700px] overflow-hidden
+        items-center md:items-stretch`}
         style={{
           textAlign,
           background: customBg || undefined,
