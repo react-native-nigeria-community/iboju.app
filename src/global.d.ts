@@ -15,6 +15,7 @@ export interface ControlsProps {
   customBg: string | null;
   textAlign: "left" | "center" | "right";
   layout: "default" | "inverted";
+  deviceStyle: "flat" | "3d";
 
   titleColor: string;
   subtitleColor: string;
@@ -24,6 +25,7 @@ export interface ControlsProps {
   setCustomBg: (value: string | null) => void;
   setTextAlign: (value: "left" | "center" | "right") => void;
   setLayout: (value: "default" | "inverted") => void;
+  setDeviceStyle: (value: "flat" | "3d") => void;
 
   setTitleColor: (value: string) => void;
   setSubtitleColor: (value: string) => void;
@@ -43,10 +45,11 @@ export interface ScreenItem {
   textAlign: "left" | "center" | "right";
   bgStyle: string;
   customBg: string | null;
-  layout: "default" | "inverted"; 
+  layout: "default" | "inverted";
   titleColor: string;
   subtitleColor: string;
   isTextColorCustom: boolean;
+  deviceStyle: "flat" | "3d";
 }
 
 export interface ExportPreviewProps {
@@ -59,7 +62,8 @@ export interface ExportPreviewProps {
   customBg: string | null;
   layout: "default" | "inverted";
   titleColor: string;
- subtitleColor: string;
+  subtitleColor: string;
+  deviceStyle: "flat" | "3d";
 }
 
 export interface ScreenItemLeftBar {
@@ -82,7 +86,10 @@ export interface LeftSidebarPillProps {
   setSidebarsCollapsed: (value: boolean) => void;
 }
 
-export interface LeftSidebarExpandedProps extends Omit<LeftSidebarProps, "screens"> {
+export interface LeftSidebarExpandedProps extends Omit<
+  LeftSidebarProps,
+  "screens"
+> {
   screens: ScreenItemLeftBar[];
   filteredScreens: ScreenItemLeftBar[];
   search: string;
@@ -106,4 +113,5 @@ export interface ScreenItem {
   bgStyle: string;
   customBg: string | null;
   layout: "default" | "inverted";
+  deviceStyle: "flat" | "3d";
 }

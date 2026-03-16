@@ -13,8 +13,10 @@ export const ExportPreview: React.FC<ExportPreviewProps> = ({
   layout,
   titleColor,
   subtitleColor,
+  deviceStyle,
 }) => {
   const isInverted = layout === "inverted";
+  const is3D = deviceStyle === "3d";
 
   const titleStyle = useMemo(
     () => ({
@@ -23,7 +25,7 @@ export const ExportPreview: React.FC<ExportPreviewProps> = ({
       textAlign,
       color: titleColor,
     }),
-    [textAlign, titleColor]
+    [textAlign, titleColor],
   );
 
   const subtitleStyle = useMemo(
@@ -33,7 +35,7 @@ export const ExportPreview: React.FC<ExportPreviewProps> = ({
       textAlign,
       color: subtitleColor,
     }),
-    [textAlign, subtitleColor]
+    [textAlign, subtitleColor],
   );
 
   const containerStyle = useMemo(
@@ -42,22 +44,16 @@ export const ExportPreview: React.FC<ExportPreviewProps> = ({
       textAlign,
       background: customBg || undefined,
     }),
-    [customBg, textAlign]
+    [customBg, textAlign],
   );
 
   const TextBlock = (
     <div className="space-y-8">
-      <h2
-        className="text-8xl font-bold leading-tight"
-        style={titleStyle}
-      >
+      <h2 className="text-8xl font-bold leading-tight" style={titleStyle}>
         {title}
       </h2>
 
-      <p
-        className="text-5xl leading-snug"
-        style={subtitleStyle}
-      >
+      <p className="text-5xl leading-snug" style={subtitleStyle}>
         {subtitle}
       </p>
     </div>
@@ -82,9 +78,13 @@ export const ExportPreview: React.FC<ExportPreviewProps> = ({
         {!isInverted && TextBlock}
 
         <div className="flex-1 flex items-center justify-center">
-          <div className="bg-black rounded-[110px] p-6 border-[10px] border-black">
-            <div className="w-[950px] h-[1900px] bg-white rounded-[106px] overflow-hidden relative flex items-center justify-center">
-              <PhoneNotch />
+          <div
+            className={`${is3D ? "bg-black rounded-[110px] p-6 border-[10px] border-black" : ""}`}
+          >
+            <div
+              className={`w-[950px] h-[1900px] bg-white ${is3D ? "rounded-[106px]" : "rounded-3xl border-8 border-gray-300 shadow-2xl"} overflow-hidden relative flex items-center justify-center`}
+            >
+              {is3D && <PhoneNotch />}
 
               {screenshot ? (
                 <img
