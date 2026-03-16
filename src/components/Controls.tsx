@@ -68,6 +68,10 @@ export const Controls: React.FC<ControlsProps> = ({
   titleColor,
   subtitleColor,
   isTextColorCustom,
+  titleFont,
+  subtitleFont,
+  titleFontSize,
+  subtitleFontSize,
   setBgStyle,
   setCustomBg,
   setTextAlign,
@@ -75,6 +79,10 @@ export const Controls: React.FC<ControlsProps> = ({
   setTitleColor,
   setSubtitleColor,
   setIsTextColorCustom,
+  setTitleFont,
+  setSubtitleFont,
+  setTitleFontSize,
+  setSubtitleFontSize,
   handleImageUpload,
   onPresetChange,
 }) => {
@@ -280,6 +288,127 @@ export const Controls: React.FC<ControlsProps> = ({
                 {en.controls[align]}
               </button>
             ))}
+          </div>
+        </div>
+      </SidebarSection>
+
+      {/* =============================
+          SECTION: Fonts
+      ============================== */}
+      <SidebarSection id="fonts" title="Fonts">
+        {/* Title Font */}
+        <div>
+          <label className="block text-[11px] text-gray-400 mb-1">
+            Title Font
+          </label>
+
+          <select
+            className="w-full bg-[#111827] border border-gray-700 rounded-md px-2 py-1.5 text-xs text-gray-100
+            focus:outline-none focus:ring-1 focus:ring-blue-500"
+            value={titleFont}
+            onChange={(e) => setTitleFont(e.target.value)}
+          >
+            {AVAILABLE_FONTS.map((font) => (
+              <option key={font.value} value={font.value}>
+                {font.name}
+              </option>
+            ))}
+          </select>
+
+          {/* Title Font Size */}
+          <div className="mt-2">
+            <label className="block text-[11px] text-gray-400 mb-1">Title Size (px)</label>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="px-2 py-1 text-xs border border-gray-700 rounded hover:bg-gray-800"
+                onClick={() => setTitleFontSize(Math.max(8, titleFontSize - 1))}
+              >
+                -
+              </button>
+              <input
+                type="range"
+                min={8}
+                max={72}
+                step={1}
+                value={titleFontSize}
+                onChange={(e) => setTitleFontSize(parseInt(e.target.value, 10))}
+                className="flex-1"
+              />
+              <button
+                type="button"
+                className="px-2 py-1 text-xs border border-gray-700 rounded hover:bg-gray-800"
+                onClick={() => setTitleFontSize(Math.min(200, titleFontSize + 1))}
+              >
+                +
+              </button>
+              <input
+                type="number"
+                min={8}
+                max={200}
+                value={titleFontSize}
+                onChange={(e) => setTitleFontSize(Number(e.target.value) || 0)}
+                className="w-16 bg-[#111827] border border-gray-700 rounded px-2 py-1 text-xs"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Subtitle Font */}
+        <div>
+          <label className="block text-[11px] text-gray-400 mb-1">
+            Subtitle Font
+          </label>
+
+          <select
+            className="w-full bg-[#111827] border border-gray-700 rounded-md px-2 py-1.5 text-xs text-gray-100
+            focus:outline-none focus:ring-1 focus:ring-blue-500"
+            value={subtitleFont}
+            onChange={(e) => setSubtitleFont(e.target.value)}
+          >
+            {AVAILABLE_FONTS.map((font) => (
+              <option key={font.value} value={font.value}>
+                {font.name}
+              </option>
+            ))}
+          </select>
+
+          {/* Subtitle Font Size */}
+          <div className="mt-2">
+            <label className="block text-[11px] text-gray-400 mb-1">Subtitle Size (px)</label>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="px-2 py-1 text-xs border border-gray-700 rounded hover:bg-gray-800"
+                onClick={() => setSubtitleFontSize(Math.max(8, subtitleFontSize - 1))}
+              >
+                -
+              </button>
+              <input
+                type="range"
+                min={8}
+                max={72}
+                step={1}
+                value={subtitleFontSize}
+                onChange={(e) => setSubtitleFontSize(parseInt(e.target.value, 10))}
+                className="flex-1"
+              />
+              <button
+                type="button"
+                className="px-2 py-1 text-xs border border-gray-700 rounded hover:bg-gray-800"
+                onClick={() => setSubtitleFontSize(Math.min(200, subtitleFontSize + 1))}
+              >
+                +
+              </button>
+              <input
+                type="number"
+                min={8}
+                max={200}
+                value={subtitleFontSize}
+                onChange={(e) => setSubtitleFontSize(Number(e.target.value) || 0)}
+                className="w-16 bg-[#111827] border border-gray-700 rounded px-2 py-1 text-xs"
+              />
+            </div>
           </div>
         </div>
       </SidebarSection>
